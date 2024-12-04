@@ -78,6 +78,12 @@ module Tests = struct
     let actual = find_indices puzzle X in
     assert_equal (module IndexArray) actual ~expected:[||]
 
+  let%test "two lines puzzle has two Xs" =
+    let puzzle = from_lists [ [ S; S; S; X ]; [ S; X; S; S ] ] in
+    let actual = find_indices puzzle X in
+    let expected = [| { row = 0; col = 3 }; { row = 1; col = 1 } |] in
+    assert_equal (module IndexArray) actual ~expected
+
   let%test "empty puzzle has no star formation at 0,0" =
     let puzzle = from_lists [] in
     let actual = star_indices puzzle { row = 0; col = 0 } in
