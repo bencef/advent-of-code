@@ -122,6 +122,41 @@ module Fs = struct
     List.fold commands ~init:z ~f:run_command |> Zipper.to_fs
 end
 
+module Actions = struct
+  type dir = { size : int; name : string; sub_dirs : dir list }
+
+  let rec flatten { size; name; sub_dirs } =
+    let size =
+      let sizes = List.map sub_dirs ~f:(fun d -> d.size) in
+      let sub_size =
+        List.reduce sizes ~f:Int.( + ) |> Option.value ~default:0
+      in
+      size + sub_size
+    in
+    let subs = List.map sub_dirs ~f:flatten in
+    [| (size, name) |] :: subs |> Array.concat
+
+  let to_dirs fs =
+    let rec aux ~acc = function
+      | [] -> acc
+      | Fs.File_Node { size; _ } :: rest ->
+          let acc = { acc with size = acc.size + size } in
+          aux ~acc rest
+      | Fs.Dir_Node { name; nodes } :: rest ->
+          let root = { size = 0; name; sub_dirs = [] } in
+          let d = aux ~acc:root (Array.to_list nodes) in
+          let acc = { acc with sub_dirs = d :: acc.sub_dirs } in
+          aux ~acc rest
+    in
+    match fs with
+    | Fs.File_Node _ -> failwith "root must be directory"
+    | Fs.Dir_Node { name; nodes } ->
+        let root = { size = 0; name; sub_dirs = [] } in
+        aux ~acc:root (Array.to_list nodes)
+
+  let dirs_with_size fs = to_dirs fs |> flatten
+end
+
 module Tests = struct
   open Fs
 
@@ -200,5 +235,16 @@ module Tests = struct
 
   let%test "Example 1" =
     let fs = from_commands example1_commands in
-    assert_equal fs ~expected:initial_fs
+    let dirs = Actions.dirs_with_size fs in
+    let dirs =
+      Array.filter_map dirs ~f:(fun (size, _name) ->
+          if size <= 100000 then Some size else None)
+    in
+    let result = Array.reduce dirs ~f:Int.( + ) |> Option.value ~default:0 in
+    let expected = 95437 in
+    match Int.equal result expected with
+    | false ->
+        Printf.printf "Expected: %d\nGot: %d\n" expected result;
+        false
+    | true -> true
 end
