@@ -14,6 +14,10 @@ so:
 d 1 = 0
 d n = d ((sqrt n)-1)^2 + 1
 
+making
+
+d n = (sqrt n) - 1
+
 for non squares:
 
 Up to every perfect square we add two sqrt n long sides
@@ -54,11 +58,9 @@ steps :: Integer -> Integer
 steps n = case n - (squareRoot n ^! 2) of
   0 -> d n -- perfect square
   1 -> d (n-1) + 1 -- opposite to perfect square
-  _ -> walkTo n 
+  _ -> walkTo n
   where
-    d :: Integer -> Integer
-    d 1 = 0
-    d n = d (((squareRoot n)-1) ^! 2) + 1
+    d = pred . squareRoot
 
 walkTo :: Integer -> Integer
 walkTo n = walk start subtractingSteps stepsToSquare
