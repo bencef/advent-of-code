@@ -51,6 +51,10 @@ For example =+= is just like any function and can be used in a prefix form in pa
 #+BEGIN_SRC haskell
   (+) 3 5 == 3 + 5 -- True
 #+END_SRC
+Also functions with normal names can be used infix with backicks. For example:
+#+BEGIN_SRC haskell
+  isEven n = n `mod` 2 == 0
+#+END_SRC
 
 Defining a function is just defining an equation:
 #+BEGIN_SRC haskell
