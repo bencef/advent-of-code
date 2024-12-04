@@ -47,7 +47,7 @@ let check a b rest =
         else Failed_at index
     | _ -> Failed_at index
   in
-  go a b rest None 0
+  go a b rest None 1
 
 let is_record_safe = function
   | first_level :: second_level :: rest -> check first_level second_level rest
