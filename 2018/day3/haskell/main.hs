@@ -7,6 +7,7 @@ import           Data.Either
 import           Data.Foldable
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
+import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -83,8 +84,8 @@ tableSize = go 0 0
       let (Claim _ (CoordRect _ _ maxX' maxY')) = head
       in go (max maxX maxX') (max maxY maxY') rest
 
-getCell :: (Int, Int) -> Table -> Tile
-getCell = M.findWithDefault Empty
+getCell :: Table -> (Int, Int) -> Tile
+getCell t c = M.findWithDefault Empty c t
 
 coverCell :: (Int, Int) -> Table -> Table
 coverCell = M.alter alter
@@ -101,6 +102,17 @@ addToTable t c = let (Claim _ rect) = c
                      coords = getCoords rect
                  in foldl' (flip coverCell) t coords
 
+findNoneOverlapping :: Table -> [Claim] -> Maybe Int
+findNoneOverlapping t = let overlapped = (Overlapped ==)
+                            cells (Claim _ rect)= map (getCell t) (getCoords rect)
+                            matches c = not (any overlapped (cells c))
+                            go [] = Nothing
+                            go (claim:rest) =
+                              if matches claim
+                              then Just (claimId claim)
+                              else go rest
+                        in go
+
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
@@ -112,3 +124,5 @@ main = do
   -- print table
   putStr "Solution to part 1: "
   print ((length . filter (\(_, t) -> t == Overlapped) . M.toList) table)
+  putStr "Solution to part 2: "
+  maybe (TIO.putStrLn "None found") print (findNoneOverlapping table claims)
