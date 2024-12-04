@@ -1,13 +1,13 @@
 open Core
 
 module type S = sig
-  val log : ('a, Out_channel.t, unit) format -> 'a
+  val log : ((('a, Out_channel.t, unit) format -> 'a) -> unit) -> unit
 end
 
 module Null_Logger : S = struct
-  let log fmt = Printf.ifprintf Stdio.stdout fmt
+  let log = ignore
 end
 
 module Console_Logger : S = struct
-  let log = Printf.printf
+  let log k = k Printf.printf
 end

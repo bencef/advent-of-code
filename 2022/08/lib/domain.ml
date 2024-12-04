@@ -5,7 +5,7 @@ module Trees (Logger : Log.S) = struct
   type dir = Top | Left | Right | Bottom
 
   let make rows =
-    Logger.log "Reading %d rows\n" (List.length rows);
+    Logger.log (fun fmt -> fmt "Reading %d rows\n" (List.length rows));
     let rows = Array.of_list_map rows ~f:Array.of_list in
     { rows }
 
@@ -47,14 +47,16 @@ module Trees (Logger : Log.S) = struct
         Array.map row ~f:(fun dirs -> List.length dirs > 0))
 
   let collect_seeing_distance _direction row =
-    Logger.log "processing row: %s\n\n"
-      (String.concat_array ~sep:"; " (Array.map ~f:string_of_int row));
+    Logger.log (fun fmt ->
+        fmt "processing row: %s\n\n"
+          (String.concat_array ~sep:"; " (Array.map ~f:string_of_int row)));
     let process_tree (height_distances, edge_distance, acc) tree =
-      Logger.log "At edge distance %d: Height distances: %s\n" edge_distance
-        (List.to_string
-           ~f:(fun (height, distance) ->
-             Printf.sprintf "{h: %d; d: %d}" height distance)
-           height_distances);
+      Logger.log (fun fmt ->
+          fmt "At edge distance %d: Height distances: %s\n" edge_distance
+            (List.to_string
+               ~f:(fun (height, distance) ->
+                 Printf.sprintf "{h: %d; d: %d}" height distance)
+               height_distances));
       let seeing_distance =
         match
           List.find_map height_distances ~f:(fun (height, distance) ->
