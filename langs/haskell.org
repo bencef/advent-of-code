@@ -56,15 +56,67 @@ Defining a function is just defining an equation:
 #+BEGIN_SRC haskell
   square a = a * a
 #+END_SRC
-** TODO Types
+** Types
 Haskell is a statically typed language but the compiler can figure out (most of) the type of expressions.
 
+But we can also annotate any type with the =::= operator.
+#+BEGIN_SRC haskell
+  pi :: Double
+  pi = 3.14159265358979323
+#+END_SRC
+We can also annotate just parts of an expression:
+#+BEGIN_SRC haskell
+  (num1 :: Int) + num2
+#+END_SRC
+The type of functions are annotated with =->= arrows:
+#+BEGIN_SRC haskell
+  square :: Double -> Double
+  square x = x * x
+#+END_SRC
+This means that square takes a Double and returns a double.
 
-** TODO Pattern matching
+Lists are annotated with square brackets:
+=[Integer]= is the type of a list of integers.
+
+Type parameters are annotated by lowercase letters.
+#+BEGIN_SRC haskell
+  f :: a -> b
+#+END_SRC
+is equivalent to the Java declaration:
+#+BEGIN_SRC java
+  static <A, B> B f(A a);
+#+END_SRC
+We can define our own types with the =data= keyword in the following format:
+#+BEGIN_SRC haskell
+  data Name = Constructor1
+    | Constructor2
+    | Constructor3
+#+END_SRC
+For example:
+#+BEGIN_SRC haskell
+  data Point = Point Double Double
+
+  data Rectangle = RectTwoPoints Point Point
+    | RectOrigWidthHeight Point Double Double
+#+END_SRC
+Type names have to begin with a capital letter and variable names have to begin with a lower case letter (or special character).
+** Pattern matching
+One way to define functions is to substitute actual values into (some of) their parameters.
+For example the following are equivalent:
+#+BEGIN_SRC haskell
+  factorial 0 = 0
+  factorial n = n * factorial (n-1)
+
+  -- is equivalent to
+
+  factorial n = if n == 0 then 0 else n * factorial (n-1)
+#+END_SRC
+*Note:* these implementations don't take into account negative arguments.
 ** TODO if
 ** TODO case
 ** TODO let
 ** TODO where
+** TODO Lists
 ** TODO List comprehensions
 
 * TODO Semantics
