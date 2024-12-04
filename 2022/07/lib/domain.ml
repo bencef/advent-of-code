@@ -1,3 +1,5 @@
+open! Core
+
 module Fs = struct
   type file_data = { name : string; size : int }
 
@@ -11,8 +13,25 @@ module Fs = struct
   let initial_fs = Dir_Node { name = "/"; nodes = [||] }
 
   module Zipper = struct
-    let from_fs = Fun.id
-    let to_fs = Fun.id
+    type crumb = { name : string; siblings : t array }
+    type z = { trail : crumb list; focus : t option }
+
+    let from_fs = function
+      | Dir_Node { name; nodes = _ } ->
+          let trail = [ { name; siblings = [||] } ] in
+          { trail; focus = None }
+      | File_Node _ -> failwith "Can't make a zipper out of a file"
+
+    let rec to_fs { trail; focus } =
+      match trail with
+      | [] -> failwith "no more crumbs"
+      | { name; siblings } :: trail -> (
+          let d =
+            let focus = Option.to_array focus in
+            let nodes = Array.append siblings focus in
+            Dir_Node { name; nodes }
+          in
+          match trail with [] -> d | _ -> to_fs { trail; focus = Some d })
   end
 
   let from_commands _commmands = initial_fs
@@ -24,7 +43,7 @@ module Fs = struct
         && Int.(equal data1.size data2.size)
     | Dir_Node data1, Dir_Node data2 ->
         String.(equal data1.name data2.name)
-        && Array.for_all2 equal data1.nodes data2.nodes
+        && Array.equal equal data1.nodes data2.nodes
     | _ -> false
 
   let to_string = function
