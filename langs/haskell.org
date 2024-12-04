@@ -3,7 +3,7 @@
 
 * Syntax
 ** Structure
-Haskell has an indentation based syntax like python.
+Haskell has an indentation based syntax like Python.
 
 One expression can be divided into multiple lines, as long as subequent lines are indented deeper.
 #+BEGIN_SRC haskell
@@ -38,7 +38,7 @@ A function call is the name of a function and the parameters separated by whites
 #+BEGIN_SRC haskell
   f a b c
 #+END_SRC
-Is equivalent to the following python code:
+Is equivalent to the following Python code:
 #+BEGIN_SRC python
   f(a, b, c)
 #+END_SRC
