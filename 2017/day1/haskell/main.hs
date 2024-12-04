@@ -22,4 +22,7 @@ result :: String -> Integer
 result = solve
 
 main :: IO ()
-main = putStrLn.show $ solve "112341"
+main = readFile input >>= putStrLn.show.solve
+  where
+    input :: String
+    input = "../input"
