@@ -20,9 +20,15 @@ module Signal = struct
 
   let make = make_with_window_size 4
 
-  let is_at_start_marker { window; _ } =
+  let window_has_distinct_chars ~amount window =
     let set = CharSet.of_array window in
-    Int.(CharSet.length set = 4)
+    Int.(CharSet.length set = amount)
+
+  let is_at_start_marker { window; _ } =
+    window_has_distinct_chars ~amount:4 window
+
+  let is_at_message_marker { window; _ } =
+    window_has_distinct_chars ~amount:14 window
 
   let step { window; rest } =
     match rest with
@@ -35,18 +41,24 @@ module Signal = struct
         in
         Some { window; rest }
 
-  let start signal =
-    let rec start' signal index =
-      if signal |> is_at_start_marker then Some (index, signal)
-      else
-        match step signal with
-        | None -> None
-        | Some signal -> start' signal (index + 1)
-    in
-    let start_index = 4 in
-    start' signal start_index
+  let rec seek ~is_found signal index =
+    if signal |> is_found then Some (index, signal)
+    else
+      match step signal with
+      | None -> None
+      | Some signal -> seek ~is_found signal (index + 1)
 
-  let message_start _signal = None
+  let start signal =
+    let start_index = Array.length signal.window in
+    seek ~is_found:is_at_start_marker signal start_index
+
+  let message_start signal =
+    let ( let* ) = Option.Let_syntax.( >>= ) in
+    let message_marker_len = 14 in
+    let* index, signal = start signal in
+    let* signal = make_with_window_size message_marker_len signal.rest in
+    let index = index + message_marker_len in
+    seek ~is_found:is_at_message_marker signal index
 end
 
 module Tests = struct

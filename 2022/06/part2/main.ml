@@ -8,7 +8,8 @@ let () =
     |> Option.value_exn ~message:"Parse error"
     |> Option.value_exn ~message:"Input not long enough"
   in
-  let message_start =
-    message_start signal |> Option.value_exn ~message:"No message position found"
+  let message_start, _ =
+    message_start signal
+    |> Option.value_exn ~message:"No message position found"
   in
   Printf.printf "First message starts at position %d\n" message_start
