@@ -112,8 +112,42 @@ For example the following are equivalent:
   factorial n = if n == 0 then 0 else n * factorial (n-1)
 #+END_SRC
 *Note:* these implementations don't take into account negative arguments.
-** TODO if
-** TODO case
+** if
+In haskell =if= is an expression similar to the trinary operator in other languages.
+#+BEGIN_SRC haskell
+  if pred then expr1 else expr2
+#+END_SRC
+Is equvalent to
+#+BEGIN_SRC python
+  pred ? expr1 : expr2
+#+END_SRC
+in other languages.
+
+Restrictions:
+- =pred= has to be an expression with type =Bool= and =expr1= has to have the same type as =expr2=.
+- The else branch cannot be omitted.
+** case
+The =case= _expression_ is similar to the =switch/case= construct in C-like languages.
+#+BEGIN_SRC haskell
+  case expr1 of
+    val1 -> expr2
+    val2 -> expr3
+    val3 -> expr4
+
+  -- or in one line:
+
+  case expr1 of { val1 -> expr2 ; val2 -> expr3 ; val3 -> expr4 }
+#+END_SRC
+Is almost equvalent to the Java code:
+#+BEGIN_SRC java
+  switch (expr1) {
+  case val1: return expr2;
+  case val2: return expr3;
+  case val3: return expr4;
+  }
+#+END_SRC
+*Note:* In Java switch is a statement meaining it doesn't have a value
+whereas in Haskell case is an expression evaluating to the value of the matched expression.
 ** TODO let
 ** TODO where
 ** TODO Lists
