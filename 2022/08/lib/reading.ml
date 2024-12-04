@@ -1,5 +1,7 @@
 open Core
 
+module Parser = Parser.Make(Domain.Trees(Log.Null_Logger))
+
 let print_position outx lexbuf =
   let open Lexing in
   let pos = lexbuf.lex_curr_p in

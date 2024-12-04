@@ -1,9 +1,13 @@
+%parameter <Trees: sig type t val make : int list list -> t end>
 %{
     open! Core
 %}
-%token EOF
-%start <unit> prog
+
+%start <Trees.t> prog
 %%
 
 prog:
-  | EOF { () }
+  | rows = row+; EOF { Trees.make rows }
+
+row:
+  | ds = DIGIT+; LINE_END { ds }

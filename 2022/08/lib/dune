@@ -1,12 +1,24 @@
+; Compile tokens.mly into a definition of the type [token].
 (menhir
- (flags --explain)
- (modules parser))
+  (modules tokens)
+  (flags --only-tokens)
+)
+
+; Compile parser.mly into a (parameterized) parser.
+; We need tokens.mly too, because it contains the token definitions.
+; The resulting OCaml files should be named parser.{ml,mli}
+; and should *not* contain a definition of the [token] type.
+(menhir
+  (modules tokens parser)
+  (merge_into parser)
+  (flags --external-tokens Tokens)
+)
 
 (ocamllex lexer)
 
 (library
  (name twentytwoday08)
- (modules parser lexer reading)
+ (modules log domain tokens parser lexer reading)
  (libraries core)
  (inline_tests)
  (preprocess (pps ppx_inline_test)))
