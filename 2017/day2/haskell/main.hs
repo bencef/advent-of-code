@@ -16,10 +16,13 @@ maxDiff (a:as) = go a a as
     go minV maxV (a:as) = go (min minV a) (max maxV a) as
 
 evenDivs :: [Int] -> Int
-evenDivs as = get [ i `div` j | i <- as, j <- as, i `mod` j == 0]
+evenDivs as = get [ i `div` j
+                  | i <- as
+                  , j <- as
+                  , i /= j
+                  , i `mod` j == 0]
   where
     get [] = 0
-    get (1:as) = get as
     get (a:as) = a
 
 readRows :: Text -> [[Int]]
