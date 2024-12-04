@@ -28,6 +28,8 @@ module Fs = struct
     | Dir_Node { name; _ } -> name
     | File_Node { name; _ } -> name
 
+  let compare a b = String.compare (get_name a) (get_name b)
+
   let to_string = function
     | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
     | Dir_Node data ->
@@ -53,6 +55,7 @@ module Fs = struct
       | { name; siblings = nodes }, crumb :: trail ->
           let dir = Dir_Node { name; nodes } in
           let siblings = Array.append crumb.siblings [| dir |] in
+          Array.sort siblings ~compare;
           let crumb = { crumb with siblings } in
           let trail =
             match Nonempty.from trail with
@@ -129,6 +132,26 @@ module Tests = struct
         (to_string actual);
       false)
 
+  let example1_commands =
+    [
+      Cd Cd_Root;
+      Ls [ dir "a"; file 14848514 "b.txt"; file 8504156 "c.dat"; dir "d" ];
+      Cd (Cd_Dir "a");
+      Ls [ dir "e"; file 29116 "f"; file 2557 "g"; file 62596 "h.lst" ];
+      Cd (Cd_Dir "e");
+      Ls [ file 584 "i" ];
+      Cd Cd_Up;
+      Cd Cd_Up;
+      Cd (Cd_Dir "d");
+      Ls
+        [
+          file 4060174 "j";
+          file 8033020 "d.log";
+          file 5626152 "d.ext";
+          file 7214296 "k";
+        ];
+    ]
+
   let%test "initial FS can be zipped back up" =
     let z = Zipper.from_fs initial_fs in
     let fs = Zipper.to_fs z in
@@ -160,27 +183,22 @@ module Tests = struct
     let expected = Dir_Node { name = "/"; nodes = [| dir "etc" |] } in
     assert_equal fs ~expected
 
-  let%test "Example 1" =
+  let%test "a single dir with a file" =
     let commands =
-      [
-        Cd Cd_Root;
-        Ls [ dir "a"; file 14848514 "b.txt"; file 8504156 "c.dat"; dir "d" ];
-        Cd (Cd_Dir "a");
-        Ls [ dir "e"; file 29116 "f"; file 2557 "g"; file 62596 "h.lst" ];
-        Cd (Cd_Dir "e");
-        Ls [ file 584 "i" ];
-        Cd Cd_Up;
-        Cd Cd_Up;
-        Cd (Cd_Dir "d");
-        Ls
-          [
-            file 4060174 "j";
-            file 8033020 "d.log";
-            file 5626152 "d.ext";
-            file 7214296 "k";
-          ];
-      ]
+      [ Ls [ dir "etc" ]; Cd (Cd_Dir "etc"); Ls [ file 42 "passwd" ] ]
     in
     let fs = from_commands commands in
+    let expected =
+      Dir_Node
+        {
+          name = "/";
+          nodes =
+            [| Dir_Node { name = "etc"; nodes = [| file 42 "passwd" |] } |];
+        }
+    in
+    assert_equal fs ~expected
+
+  let%test "Example 1" =
+    let fs = from_commands example1_commands in
     assert_equal fs ~expected:initial_fs
 end
