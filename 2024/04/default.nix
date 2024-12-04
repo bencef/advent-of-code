@@ -12,17 +12,22 @@ ocamlPackages.buildDunePackage {
         else nix-filter {
           root = ./.;
           include = [
+            "./.ocamlformat"
             "./bin/dune"
-            "./bin/main.ml"
-            "./bin/part1.ml"
-            "./bin/part2.ml"
             "./bin/main.mli"
+            "./bin/main.ml"
+            "./bin/part2.ml"
+            "./bin/part1.ml"
             "./dune-project"
             "./lib/dune"
-            "./lib/parser.mly"
             "./lib/lexer.ml"
+            "./lib/parser.mly"
             "./lib/reading.ml"
             "./lib/reading.mli"
+            "./lib/word_puzzle.ml"
+            "./lib/word_puzzle.mli"
+            "./lib/testing.ml"
+            "./lib/testing.mli"
             "./aoc_2024_04.opam"
           ];
         };
