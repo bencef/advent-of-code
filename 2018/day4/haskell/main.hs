@@ -10,6 +10,8 @@ import           Data.Functor
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Maybe
+import           Data.Set (Set)
+import qualified Data.Set as S
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -83,13 +85,28 @@ addLineToShift s@(Shift guard actions) (Date _ time, action) =
     action -> let actions' = M.insert time action actions
               in Shift guard actions'
 
+nextDay :: Day -> Day
+nextDay (Day year 1     31)  = Day year     2     1
+nextDay (Day year 2     28)  = Day year     3     1 -- no leap year check
+nextDay (Day year 3     31)  = Day year     4     1
+nextDay (Day year 4     30)  = Day year     5     1
+nextDay (Day year 5     31)  = Day year     6     1
+nextDay (Day year 6     30)  = Day year     7     1
+nextDay (Day year 7     31)  = Day year     8     1
+nextDay (Day year 8     31)  = Day year     9     1
+nextDay (Day year 9     30)  = Day year     10    1
+nextDay (Day year 10    31)  = Day year     11    1
+nextDay (Day year 11    30)  = Day year     12    1
+nextDay (Day year 12    31)  = Day (year+1) 1     1
+nextDay (Day year month day) = Day year     month (day+1)
+
 addLineToCalendar :: Calendar -> Line -> Calendar
 addLineToCalendar c l@(Date day (Time hour _), _) =
   let newShift = Shift Unknown M.empty
       alter Nothing = Just (addLineToShift newShift l)
       alter (Just shift) = Just (addLineToShift shift l)
       dayOfShift = if hour == 23
-                   then day { dayDay = 1 + dayDay day}
+                   then nextDay day
                    else day
   in M.alter alter dayOfShift c
 
@@ -165,6 +182,10 @@ getId :: Guard -> Maybe Int
 getId (Guard id) = Just id
 getId _ = Nothing
 
+getGuards :: Calendar -> Set Guard
+getGuards c = let collect acc (Shift guard _) = S.insert guard acc
+              in foldl' collect S.empty c
+
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
@@ -186,4 +207,8 @@ main = do
   maybe (TIO.putStrLn "No solution found")
     (\id -> print (id * sleepiestMinute))
     (getId sleepiestGuard)
+  -- End of Part 1
+  let allGuards = getGuards calendar
+  TIO.putStr "all guards: "
+  print allGuards
   return ()
