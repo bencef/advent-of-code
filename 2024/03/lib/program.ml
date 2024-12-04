@@ -1,3 +1,1 @@
-type t =
-  | Product of int * int
-  | Junk
+type t = Product of int * int | Junk
