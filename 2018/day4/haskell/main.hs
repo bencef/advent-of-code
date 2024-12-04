@@ -120,9 +120,6 @@ sleptMinutes = foldl' collectMinutes M.empty
 sleptRange :: Int -> Int -> [Int]
 sleptRange start end = [start..(end-1)]
 
-filterUnknown :: Calendar -> Calendar
-filterUnknown = M.filter (\(Shift guard _) -> guard /= Unknown)
-
 sleptTheMost :: Map Guard Int -> Guard
 sleptTheMost m = go (Unknown, 0) (M.toList m)
   where
@@ -175,7 +172,7 @@ main = do
   let lines = T.lines contents
   let actions = rights (map (parseOnly readLine) lines)
   let calendar = foldl' addLineToCalendar M.empty actions
-  let sleepiestGuard = (sleptTheMost . sleptMinutes . filterUnknown) calendar
+  let sleepiestGuard = (sleptTheMost . sleptMinutes) calendar
   let calendarForSleepy = filterFor sleepiestGuard calendar
   let sleepyMinuteMap = foldl' minutesSpentSleeping M.empty calendarForSleepy
   let sleepiestTime@(Time _ sleepiestMinute) = keyWithMaxVal sleepyMinuteMap
