@@ -60,6 +60,7 @@ steps n = case n - (squareRoot n ^! 2) of
   1 -> d (n-1) + 1 -- opposite to perfect square
   _ -> walkTo n
   where
+    d :: Integer -> Integer
     d = pred . squareRoot
 
 walkTo :: Integer -> Integer
