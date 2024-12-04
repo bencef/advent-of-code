@@ -18,9 +18,6 @@ solve digits = sum $
     circularZip :: (a -> a -> b) -> [a] -> [b]
     circularZip f as = zipWith f as (tail as)
 
-result :: String -> Integer
-result = solve
-
 main :: IO ()
 main = readFile input >>= putStrLn.show.solve
   where
