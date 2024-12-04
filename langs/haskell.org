@@ -198,6 +198,20 @@ is equvalent to the Python list comprehension:
   [ x * x for x in xs if x % 3 == 0 ]
 #+END_SRC
 * TODO Semantics
-** TODO Lazyness
+** Lazyness
+Haskell has non-strict evaluation. Which means that expressions are only evaluated when needed.
+Take the following example:
+#+BEGIN_SRC haskell
+  head [ x * x | x <- [1..10000] ]
+#+END_SRC
+
+It only performs one multiplication.
+
+While the equivalent Python code performs 10000 multiplications
+and discards the result of all but one:
+#+BEGIN_SRC python
+  [ x * x for x in range(10000) ] [0]
+#+END_SRC
 ** TODO Pureness
 ** TODO Currying
+** TODO Strange operators
