@@ -42,16 +42,16 @@ module State = struct
   let from_rows lines =
     let fill index map box =
       let index = index + 1 in (* start from 1 *)
-      match box with
-      | Some box ->
-         let stack =
-           match IntMap.find map index with
-           | None -> []
-           | Some list -> list
-         in
-         let stack = box :: stack in
-         map |> IntMap.set ~key:index ~data:stack
-      | None -> map
+      let stack =
+        match IntMap.find map index with
+        | None -> []
+        | Some list -> list
+      in
+      let stack = match box with
+      | Some box -> box :: stack
+      | None -> stack
+      in
+      map |> IntMap.set ~key:index ~data:stack
     in
     let add_line map line =
       line
@@ -88,3 +88,28 @@ let get_top stack =
     Some (Array.get stack 0)
   with
   | _ -> None
+
+module Tests = struct
+  let test_get state index =
+    State.get state index |> Option.value_exn
+
+  let stack_to_string stack =
+    let data_string =
+      stack
+      |> Array.map ~f:(fun c -> Printf.sprintf "%c" c)
+      |> String.concat_array ~sep:" "
+    in
+    Printf.sprintf "[%s]\n" data_string
+
+  let%test "pop 0 from empty" =
+    let rows = [ [ None ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 0 with
+    | None -> failwith "Couldn't split empty stack"
+    | Some ([||], [||]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+end

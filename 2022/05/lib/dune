@@ -7,4 +7,6 @@
 (library
  (name twentytwoday5)
  (modules supply parser lexer reading)
- (libraries core))
+ (libraries core)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
