@@ -32,6 +32,10 @@ module Fs = struct
             Dir_Node { name; nodes }
           in
           match trail with [] -> d | _ -> to_fs { trail; focus = Some d })
+
+    let set_focus z entry =
+      let focus = Some entry in
+      { z with focus }
   end
 
   let from_commands _commmands = initial_fs
@@ -50,6 +54,10 @@ module Fs = struct
     | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
     | Dir_Node data ->
         Printf.sprintf "Dir: %s files: %d" data.name (data.nodes |> Array.length)
+
+  let get_name = function
+    | Dir_Node { name; _ } -> name
+    | File_Node { name; _ } -> name
 end
 
 module Tests = struct
@@ -66,4 +74,12 @@ module Tests = struct
     let z = Zipper.from_fs initial_fs in
     let fs = Zipper.to_fs z in
     assert_equal fs ~expected:initial_fs
+
+  let%test "initial FS with one file can be zipped back up" =
+    let z = Zipper.from_fs initial_fs in
+    let file = File_Node { name = "passwd"; size = 42 } in
+    let z = Zipper.set_focus z file in
+    let fs = Zipper.to_fs z in
+    let expected = Dir_Node { name = get_name fs; nodes = [| file |] } in
+    assert_equal fs ~expected
 end
