@@ -14,24 +14,24 @@ module Fs = struct
 
   module Zipper = struct
     type crumb = { name : string; siblings : t array }
-    type z = { trail : crumb list; focus : t option }
+    type z = { trail : crumb Nonempty.t; focus : t option }
 
     let from_fs = function
       | Dir_Node { name; nodes = _ } ->
-          let trail = [ { name; siblings = [||] } ] in
+          let trail = Nonempty.singleton { name; siblings = [||] } in
           { trail; focus = None }
       | File_Node _ -> failwith "Can't make a zipper out of a file"
 
     let rec to_fs { trail; focus } =
-      match trail with
-      | [] -> failwith "no more crumbs"
-      | { name; siblings } :: trail -> (
-          let d =
-            let focus = Option.to_array focus in
-            let nodes = Array.append siblings focus in
-            Dir_Node { name; nodes }
-          in
-          match trail with [] -> d | _ -> to_fs { trail; focus = Some d })
+      let { name; siblings }, trail = Nonempty.deconstruct trail in
+      let d =
+        let focus = Option.to_array focus in
+        let nodes = Array.append siblings focus in
+        Dir_Node { name; nodes }
+      in
+      match Nonempty.from trail with
+      | None -> d
+      | Some trail -> to_fs { trail; focus = Some d }
 
     let set_focus z entry =
       let focus = Some entry in
