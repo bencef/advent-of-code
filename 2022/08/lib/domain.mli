@@ -7,4 +7,4 @@ module Trees : functor (Logger : Log.S) -> sig
   val seeing_distance : t -> int array array
 end
 
-val to_string : bool array array -> string
+val to_string : string_of_tree:('a -> string) -> 'a array array -> string

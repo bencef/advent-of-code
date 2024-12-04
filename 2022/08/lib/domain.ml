@@ -75,10 +75,9 @@ module Trees (Logger : Log.S) = struct
       ~merge:(merge_fun ~f:Int.( * ))
 end
 
-let to_string a =
-  let string_of_bool = function true -> " " | false -> "X" in
+let to_string ~string_of_tree a =
   let row_to_string row =
-    let row = Array.map row ~f:string_of_bool |> String.concat_array ~sep:" " in
+    let row = Array.map row ~f:string_of_tree |> String.concat_array ~sep:" " in
     Printf.sprintf "|%s|" row
   in
   let rows = Array.map a ~f:row_to_string |> String.concat_array ~sep:"\n" in
@@ -90,6 +89,8 @@ module Tests = struct
 
   let assert_equals got ~expected =
     let row_equal a b = Array.equal Bool.equal a b in
+    let string_of_bool = function true -> " " | false -> "X" in
+    let to_string = to_string ~string_of_tree:string_of_bool in
     match Array.equal row_equal got expected with
     | false ->
         let got = to_string got in

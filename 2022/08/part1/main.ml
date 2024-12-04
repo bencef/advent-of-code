@@ -12,6 +12,7 @@ let () =
   let forest = Reading.from_file "input" |> Option.value_exn in
   let visibilities = forest |> Trees.visibilities in
   let count = count visibilities in
-  let forest = Domain.to_string visibilities in
+  let string_of_bool = function true -> " " | false -> "X" in
+  let forest = Domain.to_string ~string_of_tree:string_of_bool visibilities in
   Printf.printf "The forest:\n---\n%s\n" forest;
   Printf.printf "Number of visible trees are: %d\n" count
