@@ -1,16 +1,18 @@
 %{
   open! Core
 %}
-%token <char> ITEM
+%token <string> ITEM
 %token EOF
-%token SEPARATOR
 %start <Rucksack.t Array.t> prog
 %%
 
 prog:
-  | separated_list(SEPARATOR, rucksack); EOF { $1 |> Array.of_list }
+  | rs = list(rucksack); EOF { rs |> Array.of_list }
   ;
 
 rucksack:
-  | list(ITEM) { $1 |> Array.of_list |> Rucksack.make }
+  | items = ITEM { items
+                   |> String.fold ~f:(fun xs x -> x :: xs) ~init:[]
+                   |> Array.of_list
+                   |> Rucksack.make }
   ;

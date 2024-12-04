@@ -10,6 +10,7 @@ type t =
   }
 
 exception OddNumberedEvents
+exception NoIntersection of t
 
 let make items =
   let length =  items |> Array.length in
@@ -34,3 +35,21 @@ let item_priority (i: item_type) =
   if is_uppercase
   then code - ('A' |> to_int) + 1 + 26
   else code - ('a' |> to_int) + 1
+
+let common_item_type t =
+  let { compartment1; compartment2 } = t in
+  let intersection = Char.Set.inter compartment1 compartment2 in
+  match Char.Set.nth intersection 0 with
+  | Some v -> v
+  | None -> raise (NoIntersection t)
+
+let to_string t =
+  let { compartment1 ; compartment2 }  = t in
+  let to_string comp = comp |> Char.Set.to_list |> String.of_char_list in
+  Printf.sprintf "Rucksack { comp1 = %s ; comp2 = %s }" (compartment1 |> to_string) (compartment2 |> to_string)
+
+let part1 values =
+  values
+  |> Array.map ~f:(common_item_type)
+  |> Array.map ~f:(item_priority)
+  |> Array.fold_left ~f:(+) ~init:0
