@@ -1,0 +1,9 @@
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
+
+(library
+ (name twentytwoday2)
+ (modules strategy parser lexer reading)
+ (libraries core))
