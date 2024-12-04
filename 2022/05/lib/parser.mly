@@ -25,16 +25,22 @@
       |> IntMap.map ~f:Array.of_list
 
 %}
-%token BOX_LINE_END
+%token SPACE
+%token <Int.t> NUMBER
+
+%token MOVE
+%token TO
+%token FROM
+
+%token LINE_END
 %token OPEN_BRACKET CLOSE_BRACKET
 %token <Supply.id> ID
-%token EMPTY_BOX
 %token EOF
 %start <program> prog
 %%
 
 prog:
-  | stacks = header; instructions = instructions; EOF { { stacks; instructions } }
+  | stacks = header; LINE_END; LINE_END; instructions = instructions; EOF { { stacks; instructions } }
   ;
 
 header:
@@ -46,11 +52,11 @@ boxes:
   ;
 
 box_line:
-  | boxes = nonempty_list(possible_box); BOX_LINE_END { boxes }
+  | boxes = separated_nonempty_list(SPACE, possible_box); LINE_END { boxes }
   ;
 
 possible_box:
-  | EMPTY_BOX { None }
+  | SPACE; SPACE; SPACE { None }
   | box = box { Some box}
   ;
 
@@ -59,9 +65,15 @@ box:
   ;
 
 indices:
-  | (* TODO *) { () }
-  ;
+  | ind = separated_nonempty_list(SPACE, padded_number) { ind }
+
+
+%inline padded_number:
+   | SPACE; d = NUMBER; SPACE { d }
 
 instructions:
-  | (* TODO *) { [||] }
+  | is = nonempty_list(instruction) { Array.of_list is }
   ;
+
+%inline instruction:
+  | MOVE; SPACE; amount = NUMBER; SPACE; FROM; SPACE; from = NUMBER; SPACE; TO; SPACE; to_ = NUMBER; LINE_END { { amount; to_; from } }

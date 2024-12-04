@@ -9,7 +9,8 @@ type stack = char Array.t
 type state = stack IntMap.t
 
 type instruction =
-  { from: int
+  { amount: int
+  ; from: int
   ; to_: int
   }
 
