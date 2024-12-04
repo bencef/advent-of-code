@@ -4,6 +4,7 @@
 
     let transpose lines =
       let fill index map box =
+        let index = index + 1 in (* start from 1 *)
         match box with
         | Some box ->
            let stack =
@@ -25,8 +26,9 @@
       |> IntMap.map ~f:Array.of_list
 
 %}
-%token SPACE
 %token <Int.t> NUMBER
+
+%token EMPTY_BOX
 
 %token MOVE
 %token TO
@@ -52,11 +54,11 @@ boxes:
   ;
 
 box_line:
-  | boxes = separated_nonempty_list(SPACE, possible_box); LINE_END { boxes }
+  | boxes = nonempty_list(possible_box); LINE_END { boxes }
   ;
 
 possible_box:
-  | SPACE; SPACE; SPACE { None }
+  | EMPTY_BOX { None }
   | box = box { Some box}
   ;
 
@@ -65,15 +67,15 @@ box:
   ;
 
 indices:
-  | ind = separated_nonempty_list(SPACE, padded_number) { ind }
+  | ind = nonempty_list(padded_number) { ind }
 
 
 %inline padded_number:
-   | SPACE; d = NUMBER; SPACE { d }
+   | d = NUMBER { d }
 
 instructions:
   | is = nonempty_list(instruction) { Array.of_list is }
   ;
 
 %inline instruction:
-  | MOVE; SPACE; amount = NUMBER; SPACE; FROM; SPACE; from = NUMBER; SPACE; TO; SPACE; to_ = NUMBER; LINE_END { { amount; to_; from } }
+  | MOVE; amount = NUMBER; FROM; from = NUMBER; TO; to_ = NUMBER; LINE_END { { amount; to_; from } }
