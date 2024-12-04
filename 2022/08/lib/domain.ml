@@ -2,15 +2,47 @@ open Core
 
 module Trees (Logger : Log.S) = struct
   type t = { rows : int array array }
-  type dir = [ `Top ]
+  type dir = Top | Left | Right | Bottom
 
   let make rows =
     Logger.log "Reading %d rows\n" (List.length rows);
     let rows = Array.of_list_map rows ~f:Array.of_list in
     { rows }
 
-  let visibilities { rows } =
-    Array.map rows ~f:(fun row -> Array.map row ~f:(fun _ -> true))
+  let look_down dir trees =
+    let process_tree (highest, acc) tree =
+      match highest with
+      | Some highest when highest >= tree -> (Some highest, [] :: acc)
+      | _ -> (Some tree, [ dir ] :: acc)
+    in
+    let _highest, visibilities =
+      Array.fold trees ~init:(None, []) ~f:process_tree
+    in
+    Array.of_list_rev visibilities
+
+  let merge a b =
+    (* I need to learn optics *)
+    Array.map2_exn a b ~f:(fun a b -> Array.map2_exn a b ~f:List.append)
+
+  let dir_visibilities { rows } =
+    let lefts = Array.map rows ~f:(look_down Left) in
+    let rights =
+      let collect row = look_down Right (Array.rev row) |> Array.rev in
+      Array.map rows ~f:collect
+    in
+    let transposed = Array.transpose_exn rows in
+    let tops = Array.map transposed ~f:(look_down Top) |> Array.transpose_exn in
+    let bottoms =
+      let collect row = look_down Bottom (Array.rev row) |> Array.rev in
+      Array.map transposed ~f:collect |> Array.transpose_exn
+    in
+    List.reduce [ lefts; rights; tops; bottoms ] ~f:merge
+    |> Option.value ~default:[||]
+
+  let visibilities forest =
+    let dir_visibilities = dir_visibilities forest in
+    Array.map dir_visibilities ~f:(fun row ->
+        Array.map row ~f:(fun dirs -> List.length dirs > 0))
 end
 
 module Tests = struct
