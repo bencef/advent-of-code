@@ -3,6 +3,10 @@
 module Main where
 
 import           Data.Attoparsec.Text
+import           Data.Either
+import           Data.Foldable
+import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -26,13 +30,20 @@ data Range =
   Range Int Int
   deriving (Eq, Show)
 
+data Tile = Empty
+          | Covered
+          | Overlapped
+          deriving (Eq, Show)
+
 data Claim =
   Claim { claimId   :: Int
         , claimRect :: CoordRectangle }
   deriving (Eq, Show)
 
+type Table = Map (Int, Int) Tile
+
 toCoordRect :: Rectangle -> CoordRectangle
-toCoordRect (Rect x0 y0 w h) = CoordRect x0 y0 (x0 + w) (y0 + h)
+toCoordRect (Rect x0 y0 w h) = CoordRect x0 y0 (x0 + w - 1) (y0 + h - 1)
 
 readRect :: Parser Rectangle
 readRect = Rect <$> decimal
@@ -44,8 +55,6 @@ readClaim :: Parser Claim
 readClaim = Claim <$> (char '#' *> decimal)
             <* (skipSpace *> char '@' *> skipSpace)
             <*> (toCoordRect <$> readRect)
-
-
 
 maybeCoordRect :: Maybe Range -> Maybe Range -> Maybe CoordRectangle
 maybeCoordRect (Just (Range x0 x1)) (Just (Range y0 y1)) =
@@ -66,17 +75,40 @@ overlapRect a b = let (CoordRect ax0 ay0 ax1 ay1) = a
                       vertiRange = overlapRange ay0 ay1 by0 by1
                   in maybeCoordRect horiRange vertiRange
 
+tableSize :: [Claim] -> (Int, Int)
+tableSize = go 0 0
+  where
+    go maxX maxY [] = (maxX, maxY)
+    go maxX maxY (head:rest) =
+      let (Claim _ (CoordRect _ _ maxX' maxY')) = head
+      in go (max maxX maxX') (max maxY maxY') rest
 
-firstOverlapTemp lines =
-  do
-    (Claim _ r1) <- parseOnly readClaim (lines !! 16)
-    (Claim _ r2) <- parseOnly readClaim (lines !! 24)
-    return (overlapRect r1 r2)
+getCell :: (Int, Int) -> Table -> Tile
+getCell = M.findWithDefault Empty
+
+coverCell :: (Int, Int) -> Table -> Table
+coverCell = M.alter alter
+  where
+    alter Nothing = Just Covered
+    alter (Just _) = Just Overlapped
+
+getCoords :: CoordRectangle -> [(Int, Int)]
+getCoords (CoordRect x0 y0 x1 y1) =
+  [(x, y) | x <- [x0..x1], y <- [y0..y1]]
+
+addToTable :: Table -> Claim -> Table
+addToTable t c = let (Claim _ rect) = c
+                     coords = getCoords rect
+                 in foldl' (flip coverCell) t coords
 
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
   contents <- TIO.hGetContents h
   let lines = T.lines contents
-  let overlap = firstOverlapTemp lines
-  print overlap
+  let claims = rights (map (parseOnly readClaim) lines)
+  -- let (width, height) = tableSize claims
+  let table = foldl' addToTable M.empty claims
+  -- print table
+  putStr "Solution to part 1: "
+  print ((length . filter (\(_, t) -> t == Overlapped) . M.toList) table)
