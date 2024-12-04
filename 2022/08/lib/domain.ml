@@ -47,7 +47,14 @@ module Trees (Logger : Log.S) = struct
         Array.map row ~f:(fun dirs -> List.length dirs > 0))
 
   let collect_seeing_distance _direction row =
+    Logger.log "processing row: %s\n\n"
+      (String.concat_array ~sep:"; " (Array.map ~f:string_of_int row));
     let process_tree (height_distances, edge_distance, acc) tree =
+      Logger.log "At edge distance %d: Height distances: %s\n" edge_distance
+        (List.to_string
+           ~f:(fun (height, distance) ->
+             Printf.sprintf "{h: %d; d: %d}" height distance)
+           height_distances);
       let seeing_distance =
         match
           List.find_map height_distances ~f:(fun (height, distance) ->
@@ -157,4 +164,53 @@ module Tests = struct
     let forest = Trees.make rows in
     let visibilities = Trees.visibilities forest in
     assert_equals visibilities ~expected
+
+  let%test "empty row seeing distances" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [||] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [||] in
+    Array.equal Int.equal result expected
+
+  let%test "edge of row seeing nothing" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0 |] in
+    Array.equal Int.equal result expected
+
+  let%test "same height seeing only neighbour" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5; 5 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0; 1 |] in
+    Array.equal Int.equal result expected
+
+  let%test "higher tree seeing the lower neighbour" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5; 6 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0; 1 |] in
+    Array.equal Int.equal result expected
+
+  let%test "higher tree seeing both lower trees" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5; 5; 6 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0; 1; 2 |] in
+    Array.equal Int.equal result expected
+
+  let%test "rightmost tree only seeing same height neighbour" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5; 6; 6 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0; 1; 1 |] in
+    Array.equal Int.equal result expected
+
+  let%test "higher tree seeing over gap" =
+    let module Trees = Trees (Log.Null_Logger) in
+    let row = [| 5; 4; 6 |] in
+    let result = Trees.collect_seeing_distance Trees.Left row in
+    let expected = [| 0; 1; 2 |] in
+    Array.equal Int.equal result expected
 end
