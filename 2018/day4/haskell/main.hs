@@ -9,6 +9,7 @@ import           Data.Foldable
 import           Data.Functor
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
+import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -83,11 +84,14 @@ addLineToShift s@(Shift guard actions) (Date _ time, action) =
               in Shift guard actions'
 
 addLineToCalendar :: Calendar -> Line -> Calendar
-addLineToCalendar c l@(Date day _, _) =
+addLineToCalendar c l@(Date day (Time hour _), _) =
   let newShift = Shift Unknown M.empty
       alter Nothing = Just (addLineToShift newShift l)
       alter (Just shift) = Just (addLineToShift shift l)
-  in M.alter alter day c
+      dayOfShift = if hour == 23
+                   then day { dayDay = 1 + dayDay day}
+                   else day
+  in M.alter alter dayOfShift c
 
 calcMinutes :: Int -> Int -> Int
 calcMinutes fellAsleep wokeUp = wokeUp - fellAsleep
@@ -132,8 +136,8 @@ filterFor :: Guard -> Calendar -> Calendar
 filterFor g = M.filter (\(Shift guard _) -> g == guard)
 
 -- TODO: refactor common parts with sleptInShift
-minutesSpentSleeping :: Shift -> Map Time Int
-minutesSpentSleeping (Shift _ m) = go M.empty (WakeUp,0) (M.toList m)
+minutesSpentSleeping :: Map Time Int -> Shift -> Map Time Int
+minutesSpentSleeping map0 (Shift _ m) = go map0 (WakeUp,0) (M.toList m)
   where
     go acc _ [] = acc
     go acc last ((Time _ now, action) : rest) =
@@ -148,6 +152,22 @@ minutesSpentSleeping (Shift _ m) = go M.empty (WakeUp,0) (M.toList m)
                     add1 m k = M.alter alter (Time 0 k) m
                 in foldl' add1 m minutes
 
+keyWithMaxVal :: Ord a => Map k a -> k
+keyWithMaxVal m = go Nothing (M.toList m)
+  where
+    go (Just (k, _)) [] = k
+    go acc@(Just (_, old)) ((k, new) : rest) =
+      if new > old
+      then go (Just (k, new)) rest
+      else go acc rest
+    go Nothing (head : rest) =
+      go (Just head) rest
+    go _ _ = error "no values"
+
+getId :: Guard -> Maybe Int
+getId (Guard id) = Just id
+getId _ = Nothing
+
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
@@ -156,4 +176,17 @@ main = do
   let actions = rights (map (parseOnly readLine) lines)
   let calendar = foldl' addLineToCalendar M.empty actions
   let sleepiestGuard = (sleptTheMost . sleptMinutes . filterUnknown) calendar
+  let calendarForSleepy = filterFor sleepiestGuard calendar
+  let sleepyMinuteMap = foldl' minutesSpentSleeping M.empty calendarForSleepy
+  let sleepiestTime@(Time _ sleepiestMinute) = keyWithMaxVal sleepyMinuteMap
+  TIO.putStr "sleepiest guard: "
+  print sleepiestGuard
+  TIO.putStr "sleepiest minute: "
+  print sleepiestMinute
+  TIO.putStr "times they slept in that minute: "
+  print (sleepyMinuteMap M.! sleepiestTime)
+  TIO.putStr "solution to part 1: "
+  maybe (TIO.putStrLn "No solution found")
+    (\id -> print (id * sleepiestMinute))
+    (getId sleepiestGuard)
   return ()
