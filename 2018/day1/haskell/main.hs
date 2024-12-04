@@ -20,7 +20,7 @@ readNum t = case T.uncons t of
          _ -> Nothing
 
 findDuplicate :: [Integer] -> Maybe Integer
-findDuplicate nums = go (Set.singleton 0) 0 nums
+findDuplicate = go (Set.singleton 0) 0
   where
     go _ _ [] = Nothing
     go soFar last (next:rest) =
@@ -34,5 +34,5 @@ main = do
   h <- openFile "../input.txt" ReadMode
   contents <- TIO.hGetContents h
   let lines = T.lines contents
-  let nums = catMaybes (map readNum lines)
-  mapM_ (putStrLn . show) (findDuplicate (cycle nums))
+  let nums = mapMaybe readNum lines
+  mapM_ print (findDuplicate (cycle nums))
