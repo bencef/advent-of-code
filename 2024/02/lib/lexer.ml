@@ -8,6 +8,9 @@ let digit = [%sedlex.regexp? '0' .. '9']
 let rec token buf =
   match%sedlex buf with
   | eof -> EOF
+  | '\n' ->
+      Sedlexing.new_line buf;
+      EOR
   | Plus white_space -> token buf
   | Plus digit -> NUMBER (lexeme buf |> int_of_string)
   | _ -> Unknown_token (lexeme buf) |> raise

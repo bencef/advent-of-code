@@ -1,20 +1,18 @@
 %token <int> NUMBER
 %token EOF
-%start <(int array) * (int array)> parse
+%token EOR
+%start <int list list> parse
 
 %{
 open! Core
-
-let transform nums =
-  nums |> Array.of_list |> Array.unzip
 %}
 
 %%
 
 parse:
-  | nums = list(pair); EOF { transform nums }
+  | recs = list(record); EOF { recs }
   ;
 
-pair:
-  | a = NUMBER; b = NUMBER { (a, b) }
+record:
+  | levels = list(NUMBER); EOR { levels }
   ;
