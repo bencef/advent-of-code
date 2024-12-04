@@ -1,9 +1,11 @@
 %{
     open! Core
+    open Domain.Signal
 %}
 %token EOF
-%start <unit> prog
+%token <char> CHAR
+%start <t option> prog
 %%
 
 prog:
-  | EOF { () }
+  | chars = CHAR+; EOF { chars |> make }
