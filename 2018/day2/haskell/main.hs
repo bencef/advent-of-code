@@ -36,10 +36,30 @@ processPart1 = go 0 0
           anyThrees = elem 3 m
       in go (inc anyTwos twos) (inc anyThrees threes) rest
 
+processPart2 :: [Text] -> Text
+processPart2 ids = let len = T.length (head ids)
+                       count m v = M.alter increaseCount v m
+                       toSolution = map fst . filter (\(_, a) -> a == 2)
+                       go idx = if idx == len then T.empty
+                         else
+                         let substitute t = T.concat [ T.take idx t
+                                                     , T.singleton '_'
+                                                     , T.drop (idx+1) t]
+                             substitutes = map substitute ids
+                             freqs = foldl' count M.empty substitutes
+                             solutions = toSolution (M.toList freqs)
+                         in if not (null solutions)
+                            then head solutions
+                            else go (idx+1)
+                   in go 0
+
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
   contents <- TIO.hGetContents h
   let lines = T.lines contents
   let freqMaps = map frequencies lines
+  putStr "Solution to part one: "
   print (processPart1 freqMaps)
+  putStr "Solution to part two: "
+  print (processPart2 lines)
