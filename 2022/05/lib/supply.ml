@@ -5,6 +5,7 @@ module IntMap = Map.Make(Int)
 module Id =struct
   type t = char
   let make c = c
+  let to_string = String.of_char
 end
 
 module Stack = struct
@@ -18,6 +19,10 @@ module Stack = struct
       let popped = Array.slice stack 0 amount in
       let rest = Array.slice stack amount len in
       Some (popped, rest)
+
+  let add_rev stack ~to_add =
+    let rev = Array.rev to_add in
+    Array.concat [rev; stack]
 end
 
 module State = struct
@@ -58,6 +63,13 @@ module State = struct
     |> IntMap.map ~f:Array.of_list
 
   let get = IntMap.find
+
+  let set state key data =
+    IntMap.set state ~key ~data
+
+  let num_stacks state = IntMap.length state
+
+  let fold = IntMap.fold
 end
 
 type instruction =
