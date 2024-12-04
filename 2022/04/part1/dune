@@ -1,0 +1,4 @@
+(executable
+ (public_name part1)
+ (name main)
+ (libraries twentytwoday4 core))
