@@ -35,7 +35,7 @@ data GuardAction
 data Guard
   = Guard !Int
   | Unknown
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Shift = Shift Guard (Map Time GuardAction)
   deriving (Eq, Show)
@@ -89,6 +89,65 @@ addLineToCalendar c l@(Date day _, _) =
       alter (Just shift) = Just (addLineToShift shift l)
   in M.alter alter day c
 
+calcMinutes :: Int -> Int -> Int
+calcMinutes fellAsleep wokeUp = wokeUp - fellAsleep
+
+sleptInShift :: Shift -> Int
+sleptInShift (Shift _ m) = go 0 (WakeUp,0) (M.toList m)
+  where
+    go acc _ [] = acc
+    go acc last ((Time _ now, action) : rest) =
+      case last of
+        (FallAsleep, when) ->
+          go (acc + calcMinutes when now) (WakeUp, now) rest
+        (WakeUp, _) ->
+          go acc (FallAsleep, now) rest
+
+collectMinutes :: Map Guard Int -> Shift -> Map Guard Int
+collectMinutes m s@(Shift guard _) =
+  let minutes = sleptInShift s
+      alter Nothing = Just minutes
+      alter (Just minutes') = Just (minutes + minutes')
+  in M.alter alter guard m
+
+sleptMinutes :: Calendar -> Map Guard Int
+sleptMinutes = foldl' collectMinutes M.empty
+
+sleptRange :: Int -> Int -> [Int]
+sleptRange start end = [start..(end-1)]
+
+filterUnknown :: Calendar -> Calendar
+filterUnknown = M.filter (\(Shift guard _) -> guard /= Unknown)
+
+sleptTheMost :: Map Guard Int -> Guard
+sleptTheMost m = go (Unknown, 0) (M.toList m)
+  where
+    go g@(_, best) ((guard, minutes) : rest) =
+      if minutes > best
+      then go (guard, minutes) rest
+      else go g rest
+    go (guard, _) [] = guard
+
+filterFor :: Guard -> Calendar -> Calendar
+filterFor g = M.filter (\(Shift guard _) -> g == guard)
+
+-- TODO: refactor common parts with sleptInShift
+minutesSpentSleeping :: Shift -> Map Time Int
+minutesSpentSleeping (Shift _ m) = go M.empty (WakeUp,0) (M.toList m)
+  where
+    go acc _ [] = acc
+    go acc last ((Time _ now, action) : rest) =
+      case last of
+        (FallAsleep, when) ->
+          go (add acc when now) (WakeUp, now) rest
+        (WakeUp, _) ->
+          go acc (FallAsleep, now) rest
+    add m w n = let minutes = sleptRange w n
+                    alter Nothing = Just 1
+                    alter (Just val) = Just (val+1)
+                    add1 m k = M.alter alter (Time 0 k) m
+                in foldl' add1 m minutes
+
 main :: IO ()
 main = do
   h <- openFile "../input.txt" ReadMode
@@ -96,5 +155,5 @@ main = do
   let lines = T.lines contents
   let actions = rights (map (parseOnly readLine) lines)
   let calendar = foldl' addLineToCalendar M.empty actions
-  -- print calendar
+  let sleepiestGuard = (sleptTheMost . sleptMinutes . filterUnknown) calendar
   return ()
