@@ -1,7 +1,7 @@
 module Main where
 
 import Data.Char (digitToInt, isDigit)
-import Data.Maybe (isJust, fromJust)
+import Data.Maybe (catMaybes)
 
 data Part = Part1 | Part2
 
@@ -16,9 +16,7 @@ solve part digits = case part of
   Part2 -> go ((length digits) `div` 2) digits
   where
     go :: Int -> String -> Integer
-    go offset digits = sum $
-                       map (toInteger.fromJust) $
-                       filter isJust duplicates
+    go offset digits = sum $ map toInteger (catMaybes duplicates)
       where
         duplicates :: [Maybe Int]
         duplicates = circularZip adder digits
