@@ -148,8 +148,23 @@ Is almost equvalent to the Java code:
 #+END_SRC
 *Note:* In Java switch is a statement meaining it doesn't have a value
 whereas in Haskell case is an expression evaluating to the value of the matched expression.
-** TODO let
-** TODO where
+** let
+We can introduce scoped bindings with =let=
+#+BEGIN_SRC haskell
+  squarePlus a b = let square a = a * a in square a + square b
+#+END_SRC
+Is equivalent to:
+#+BEGIN_SRC haskell
+  squarePlus a b = (a * a) + (b * b)
+#+END_SRC
+** where
+=where= is similar to let but on the "other end".
+The above example can be rewritten as:
+#+BEGIN_SRC haskell
+  squarePlus a b = square a + square b
+    where
+      square a = a * a
+#+END_SRC
 ** TODO Lists
 ** TODO List comprehensions
 
