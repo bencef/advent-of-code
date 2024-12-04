@@ -41,5 +41,7 @@ let token buf =
   match%sedlex buf with
   | eof -> EOF
   | "mul" -> mul buf
+  | "do()" -> DO
+  | "don't()" -> DONT
   | any -> JUNK
   | _ -> failwith "unpossible"
