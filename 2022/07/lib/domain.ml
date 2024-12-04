@@ -17,10 +17,14 @@ module Fs = struct
 
   let from_commands _commmands = initial_fs
 
-  let equal fs_1 fs_2 =
+  let rec equal fs_1 fs_2 =
     match (fs_1, fs_2) with
-    | File_Node _data1, File_Node _data2 -> false
-    | Dir_Node _data1, Dir_Node _data2 -> false
+    | File_Node data1, File_Node data2 ->
+        String.(equal data1.name data2.name)
+        && Int.(equal data1.size data2.size)
+    | Dir_Node data1, Dir_Node data2 ->
+        String.(equal data1.name data2.name)
+        && Array.for_all2 equal data1.nodes data2.nodes
     | _ -> false
 
   let to_string = function
