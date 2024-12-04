@@ -1,10 +1,5 @@
 module Main where
 
-data Part = Part1 | Part2
-
-solve :: Part -> Integer -> Integer
-solve _ = steps
-
 {-
 Rule for perfect squares:
 
@@ -109,4 +104,4 @@ squareRoot n =
    in  head $ dropWhile (not . isRoot) iters
 
 main :: IO ()
-main = putStrLn.show.(solve Part1).read =<< readFile "../input"
+main = putStrLn.show.steps.read =<< readFile "../../input"
