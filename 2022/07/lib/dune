@@ -1,0 +1,12 @@
+(menhir
+ (flags --explain)
+ (modules parser))
+
+(ocamllex lexer)
+
+(library
+ (name twentytwoday07)
+ (modules domain parser lexer reading)
+ (libraries core)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
