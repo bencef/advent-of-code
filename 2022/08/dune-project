@@ -1,0 +1,13 @@
+(lang dune 2.9)
+(name twentytwoday08)
+(using menhir 2.1)
+
+(generate_opam_files)
+
+(package
+  (name twentytwoday08)
+  (synopsis "Advent of code 2022 day 08")
+  (description "Advent of code 2022 day 08 solution in ocaml")
+  (depends
+    core
+    menhir))
