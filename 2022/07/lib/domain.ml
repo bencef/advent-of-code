@@ -12,6 +12,25 @@ module Fs = struct
 
   let initial_fs = Dir_Node { name = "/"; nodes = [||] }
 
+  let rec equal fs_1 fs_2 =
+    match (fs_1, fs_2) with
+    | File_Node data1, File_Node data2 ->
+        String.(equal data1.name data2.name)
+        && Int.(equal data1.size data2.size)
+    | Dir_Node data1, Dir_Node data2 ->
+        String.(equal data1.name data2.name)
+        && Array.equal equal data1.nodes data2.nodes
+    | _ -> false
+
+  let to_string = function
+    | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
+    | Dir_Node data ->
+        Printf.sprintf "Dir: %s files: %d" data.name (data.nodes |> Array.length)
+
+  let get_name = function
+    | Dir_Node { name; _ } -> name
+    | File_Node { name; _ } -> name
+
   module Zipper = struct
     type crumb = { name : string; siblings : t array }
     type z = { trail : crumb Nonempty.t; focus : t option }
@@ -50,28 +69,30 @@ module Fs = struct
             | Some trail -> Nonempty.push crumb trail
           in
           { trail; focus = None }
+
+    let add_entry z entry =
+      let entry =
+        match entry with
+        | Dir name -> Dir_Node { name; nodes = [||] }
+        | File { name; size } -> File_Node { name; size }
+      in
+      Printf.printf "Adding: %s\n" (to_string entry);
+      let z = set_focus z entry in
+      commit z
+
+    let add_entries z entries = List.fold entries ~init:z ~f:add_entry
   end
 
-  let from_commands _commmands = initial_fs
+  let run_command z = function
+    | Ls entries -> Zipper.add_entries z entries
+    | Cd Cd_Root ->
+        Printf.printf "FIXME: ignoring \"$ cd /\"\n";
+        z
+    | _other -> failwith "unhandled"
 
-  let rec equal fs_1 fs_2 =
-    match (fs_1, fs_2) with
-    | File_Node data1, File_Node data2 ->
-        String.(equal data1.name data2.name)
-        && Int.(equal data1.size data2.size)
-    | Dir_Node data1, Dir_Node data2 ->
-        String.(equal data1.name data2.name)
-        && Array.equal equal data1.nodes data2.nodes
-    | _ -> false
-
-  let to_string = function
-    | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
-    | Dir_Node data ->
-        Printf.sprintf "Dir: %s files: %d" data.name (data.nodes |> Array.length)
-
-  let get_name = function
-    | Dir_Node { name; _ } -> name
-    | File_Node { name; _ } -> name
+  let from_commands commands =
+    let z = Zipper.from_fs initial_fs in
+    List.fold commands ~init:z ~f:run_command |> Zipper.to_fs
 end
 
 module Tests = struct
