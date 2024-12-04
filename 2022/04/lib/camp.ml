@@ -41,3 +41,12 @@ let part1 pairs =
   pairs
   |> Array.map ~f:(has_overlap)
   |> Array.count ~f:(Fun.id)
+
+let part2 pairs =
+  let has_overlap (a, b) =
+    Range.get_overlap a.sections b.sections
+    |> Option.is_some
+  in
+  pairs
+  |> Array.map ~f:(has_overlap)
+  |> Array.count ~f:(Fun.id)
