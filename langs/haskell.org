@@ -169,9 +169,34 @@ The above example can be rewritten as:
     where
       square a = a * a
 #+END_SRC
-** TODO Lists
-** TODO List comprehensions
+** Lists
+The empty list is denoted as =[]=.
+Elements can be prepended with the =(:)= function.
+#+BEGIN_SRC haskell
+  1 : [] -- [1]
+  1 : 2 : [] -- [1, 2]
+#+END_SRC
+Lists can also be defined by the synatx on the right side but it is only syntactic sugar for the left side.
+Also ranges can be defined for integers e.g., =[1..5]=, =[1..]=
 
+List can be pattern matched with the following syntax:
+#+BEGIN_SRC haskell
+  f []     = expr1 -- matches the empty list
+  f [a]    = expr2 -- matches a list with exactly one element. WARNING: this is often used wrongly by beginners
+  f (a:as) = expr3 -- matches a list with at least one element. a is the head of the list and as is the rest of the list
+
+  f as     = expr4 -- matches any list. no need to imply that as is a list. the compiler will know
+#+END_SRC
+** List comprehensions
+Haskell has list comprehensions just like Python.
+The following:
+#+BEGIN_SRC haskell
+  [ x * x | x <- xs, x `mod` 3 == 0 ]
+#+END_SRC
+is equvalent to the Python list comprehension:
+#+BEGIN_SRC python
+  [ x * x for x in xs if x % 3 == 0 ]
+#+END_SRC
 * TODO Semantics
 ** TODO Lazyness
 ** TODO Pureness
