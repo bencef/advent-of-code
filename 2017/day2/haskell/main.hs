@@ -30,9 +30,12 @@ readRows = map (collectInts.(T.split (=='\t'))) . getRows
     getRows :: Text -> [Text]
     getRows = filter (not.T.null) . T.split (=='\n')
 
-solve :: Part -> [[Int]] -> [Int]
-solve Part1 = map maxDiff
-solve Part2 = map evenDivs
+solve :: Part -> [[Int]] -> Int
+solve part = sum . map solver
+ where
+   solver = case part of
+     Part1 -> maxDiff
+     Part2 -> evenDivs
 
 main :: IO ()
-main = putStrLn.show.sum.(solve Part2).readRows.T.pack =<< readFile "../input"
+main = putStrLn.show.(solve Part2).readRows.T.pack =<< readFile "../input"
