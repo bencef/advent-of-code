@@ -1,10 +1,16 @@
 %{
   open! Core
 %}
+%token <char> ITEM
 %token EOF
-%start <unit> prog
+%token SEPARATOR
+%start <Rucksack.t Array.t> prog
 %%
 
 prog:
-  | EOF { () }
+  | separated_list(SEPARATOR, rucksack); EOF { $1 |> Array.of_list }
+  ;
+
+rucksack:
+  | list(ITEM) { $1 |> Array.of_list |> Rucksack.make }
   ;
