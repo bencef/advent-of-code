@@ -11,10 +11,10 @@ adder a b = if a == b
   else Nothing
 
 solve :: Part -> String -> Int
-solve part digits = sum $ catMaybes duplicates
+solve part digits = sum duplicates
   where
-    duplicates :: [Maybe Int]
-    duplicates = circularZip adder digits
+    duplicates :: [Int]
+    duplicates = catMaybes $ circularZip adder digits
     circularZip :: (a -> a -> b) -> [a] -> [b]
     circularZip f as = zipWith f as (drop offset (cycle as))
       where
