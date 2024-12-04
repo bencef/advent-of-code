@@ -20,11 +20,11 @@ module Trees (Logger : Log.S) = struct
     in
     Array.of_list_rev visibilities
 
-  let merge a b =
+  let merge_fun ~f a b =
     (* I need to learn optics *)
-    Array.map2_exn a b ~f:(fun a b -> Array.map2_exn a b ~f:List.append)
+    Array.map2_exn a b ~f:(fun a b -> Array.map2_exn a b ~f)
 
-  let dir_visibilities { rows } =
+  let dir_visibilities { rows } ~look_down ~merge =
     let lefts = Array.map rows ~f:(look_down Left) in
     let rights =
       let collect row = look_down Right (Array.rev row) |> Array.rev in
@@ -40,9 +40,39 @@ module Trees (Logger : Log.S) = struct
     |> Option.value ~default:[||]
 
   let visibilities forest =
-    let dir_visibilities = dir_visibilities forest in
+    let dir_visibilities =
+      dir_visibilities forest ~look_down ~merge:(merge_fun ~f:List.append)
+    in
     Array.map dir_visibilities ~f:(fun row ->
         Array.map row ~f:(fun dirs -> List.length dirs > 0))
+
+  let collect_seeing_distance _direction row =
+    let process_tree (height_distances, edge_distance, acc) tree =
+      let seeing_distance =
+        match
+          List.find_map height_distances ~f:(fun (height, distance) ->
+              if height >= tree then Some distance else None)
+        with
+        | Some distance -> distance
+        | None -> edge_distance
+      in
+      let height_distances =
+        let stepped_distances =
+          List.filter_map height_distances ~f:(fun (height, distance) ->
+              if height > tree then Some (height, distance + 1) else None)
+        in
+        (tree, 1) :: stepped_distances
+      in
+      (height_distances, edge_distance + 1, seeing_distance :: acc)
+    in
+    let _height_distances, _edge_distance, seeing_distances =
+      Array.fold row ~init:([], 0, []) ~f:process_tree
+    in
+    Array.of_list_rev seeing_distances
+
+  let seeing_distance forest =
+    dir_visibilities forest ~look_down:collect_seeing_distance
+      ~merge:(merge_fun ~f:Int.( * ))
 end
 
 let to_string a =
