@@ -24,6 +24,9 @@ module Stack = struct
     let rev = Array.rev to_add in
     Array.concat [rev; stack]
 
+  let add stack ~to_add =
+    Array.concat [to_add; stack]
+
   let get_top stack =
     try
       Some (Array.get stack 0)
@@ -90,7 +93,7 @@ module Program = struct
            ; instructions: instruction Array.t
            }
 
-  let run prog =
+  let run prog ~append =
     let {stacks; instructions} = prog in
     let step_one stacks {amount; from; to_} =
       let maybe_update =
@@ -99,12 +102,15 @@ module Program = struct
         let* from_stack = State.get stacks from in
         let* (to_add, from_stack) = Stack.pop from_stack amount in
         let stacks = State.set stacks from from_stack in
-        let to_stack = Stack.add_rev ~to_add to_stack in
+        let to_stack = append to_stack ~to_add in
         let stacks = State.set stacks to_ to_stack in
         Some stacks
       in maybe_update |> Option.value ~default:stacks
     in
     Array.fold instructions ~init:stacks ~f:step_one
+
+    let run_9000 prog = run prog ~append:Stack.add_rev
+    let run_9001 prog = run prog ~append:Stack.add
 
 end
 

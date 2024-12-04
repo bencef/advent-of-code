@@ -17,6 +17,6 @@ let get_tops (stacks: Supply.State.t) =
 
 let () =
   let prog = Reading.from_file "input" |> Option.value_exn in
-  let stacks = Supply.Program.run prog in
+  let stacks = Supply.Program.run_9000 prog in
   let tops = get_tops stacks in
   Printf.printf "%s\n" tops

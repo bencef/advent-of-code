@@ -25,5 +25,6 @@ type instruction = { amount : int; from : int; to_ : int; }
 
 module Program : sig
   type t = { stacks : State.t; instructions : instruction array; }
-  val run : t -> State.t
+  val run_9000 : t -> State.t
+  val run_9001 : t -> State.t
 end
