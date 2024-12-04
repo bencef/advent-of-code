@@ -33,42 +33,46 @@ module Fs = struct
 
   module Zipper = struct
     type crumb = { name : string; siblings : t array }
-    type z = { trail : crumb Nonempty.t; focus : t option }
+    type z = { trail : crumb Nonempty.t }
 
     let from_fs = function
       | Dir_Node { name; nodes = _ } ->
           let trail = Nonempty.singleton { name; siblings = [||] } in
-          { trail; focus = None }
+          { trail }
       | File_Node _ -> failwith "Can't make a zipper out of a file"
 
-    let rec to_fs { trail; focus } =
-      let { name; siblings }, trail = Nonempty.deconstruct trail in
-      let d =
-        let focus = Option.to_array focus in
-        let nodes = Array.append siblings focus in
-        Dir_Node { name; nodes }
-      in
-      match Nonempty.from trail with
-      | None -> d
-      | Some trail -> to_fs { trail; focus = Some d }
-
-    let set_focus z entry =
-      let focus = Some entry in
-      { z with focus }
-
-    let commit { trail; focus } =
-      match focus with
-      | None -> failwith "Empty focus"
-      | Some entry ->
-          let { name; siblings }, trail = Nonempty.deconstruct trail in
-          let siblings = Array.append [| entry |] siblings in
-          let crumb = { name; siblings } in
+    let up z =
+      match Nonempty.deconstruct z.trail with
+      | _, [] -> failwith "can't go up from root"
+      | { name; siblings = nodes }, crumb :: trail ->
+          let dir = Dir_Node { name; nodes } in
+          let siblings = Array.append crumb.siblings [| dir |] in
+          let crumb = { crumb with siblings } in
           let trail =
             match Nonempty.from trail with
             | None -> Nonempty.singleton crumb
             | Some trail -> Nonempty.push crumb trail
           in
-          { trail; focus = None }
+          { trail }
+
+    let rec top z =
+      match Nonempty.deconstruct z.trail with _, [] -> z | _ -> top (up z)
+
+    let to_fs z =
+      let { trail } = top z in
+      let { name; siblings }, _empty_trail = Nonempty.deconstruct trail in
+      Dir_Node { name; nodes = siblings }
+
+    let commit { trail } entry =
+      let { name; siblings }, trail = Nonempty.deconstruct trail in
+      let siblings = Array.append siblings [| entry |] in
+      let crumb = { name; siblings } in
+      let trail =
+        match Nonempty.from trail with
+        | None -> Nonempty.singleton crumb
+        | Some trail -> Nonempty.push crumb trail
+      in
+      { trail }
 
     let add_entry z entry =
       let entry =
@@ -77,37 +81,18 @@ module Fs = struct
         | File { name; size } -> File_Node { name; size }
       in
       Printf.printf "Adding: %s\n" (to_string entry);
-      let z = set_focus z entry in
-      commit z
+      commit z entry
 
     let add_entries z entries = List.fold entries ~init:z ~f:add_entry
-
-    let up z =
-      match z.focus with
-      | Some _ -> failwith "trying to go up with non-empty focus."
-      | None -> (
-          match Nonempty.deconstruct z.trail with
-          | _, [] -> failwith "can't go up from root"
-          | { name; siblings = nodes }, crumb :: trail ->
-              let dir = Dir_Node { name; nodes } in
-              let siblings = Array.append crumb.siblings [| dir |] in
-              let crumb = { crumb with siblings } in
-              let trail =
-                match Nonempty.from trail with
-                | None -> Nonempty.singleton crumb
-                | Some trail -> Nonempty.push crumb trail
-              in
-              { trail; focus = None })
-
-    let rec top z =
-      match Nonempty.deconstruct z.trail with _, [] -> z | _ -> top (up z)
   end
 
   let run_command z = function
     | Ls entries -> Zipper.add_entries z entries
     | Cd Cd_Root -> Zipper.top z
     | Cd Cd_Up -> Zipper.up z
-    | Cd (Cd_Dir name) -> Printf.printf "FIXME: $ cd %s\n" name; z
+    | Cd (Cd_Dir name) ->
+        Printf.printf "FIXME: $ cd %s\n" name;
+        z
 
   let from_commands commands =
     let z = Zipper.from_fs initial_fs in
@@ -131,20 +116,22 @@ module Tests = struct
 
   let%test "initial FS with one file can be zipped back up" =
     let z = Zipper.from_fs initial_fs in
-    let file = File_Node { name = "passwd"; size = 42 } in
-    let z = Zipper.set_focus z file in
+    let file = File { name = "passwd"; size = 42 } in
+    let z = Zipper.add_entry z file in
     let fs = Zipper.to_fs z in
+    let file = File_Node { name = "passwd"; size = 42 } in
     let expected = Dir_Node { name = get_name fs; nodes = [| file |] } in
     assert_equal fs ~expected
 
   let%test "initial FS with two files can be zipped back up" =
     let z = Zipper.from_fs initial_fs in
+    let file_1 = File { name = "passwd"; size = 42 } in
+    let file_2 = File { name = "groups"; size = 142 } in
+    let z = Zipper.add_entry z file_1 in
+    let z = Zipper.add_entry z file_2 in
+    let fs = Zipper.to_fs z in
     let file_1 = File_Node { name = "passwd"; size = 42 } in
     let file_2 = File_Node { name = "groups"; size = 142 } in
-    let z = Zipper.set_focus z file_1 in
-    let z = Zipper.commit z in
-    let z = Zipper.set_focus z file_2 in
-    let fs = Zipper.to_fs z in
     let expected =
       Dir_Node { name = get_name fs; nodes = [| file_1; file_2 |] }
     in
