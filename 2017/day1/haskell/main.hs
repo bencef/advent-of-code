@@ -11,17 +11,17 @@ adder a b = if a == b
   else Nothing
 
 solve :: Part -> String -> Int
-solve part digits = case part of
-  Part1 -> go 1 digits
-  Part2 -> go ((length digits) `div` 2) digits
+solve part digits = sum $ catMaybes duplicates
   where
-    go :: Int -> String -> Int
-    go offset digits = sum $ catMaybes duplicates
+    duplicates :: [Maybe Int]
+    duplicates = circularZip adder digits
+    circularZip :: (a -> a -> b) -> [a] -> [b]
+    circularZip f as = zipWith f as (drop offset (cycle as))
       where
-        duplicates :: [Maybe Int]
-        duplicates = circularZip adder digits
-        circularZip :: (a -> a -> b) -> [a] -> [b]
-        circularZip f as = zipWith f as (drop offset (cycle as))
+        offset :: Int
+        offset = case part of
+          Part1 -> 1
+          Part2 -> length digits `div` 2
 
 main :: IO ()
 main = readFile input >>= putStrLn.show.(solve Part2).(filter isDigit)
