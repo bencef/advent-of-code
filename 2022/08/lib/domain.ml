@@ -45,20 +45,18 @@ module Trees (Logger : Log.S) = struct
         Array.map row ~f:(fun dirs -> List.length dirs > 0))
 end
 
+let to_string a =
+  let string_of_bool = function true -> " " | false -> "X" in
+  let row_to_string row =
+    let row = Array.map row ~f:string_of_bool |> String.concat_array ~sep:" " in
+    Printf.sprintf "|%s|" row
+  in
+  let rows = Array.map a ~f:row_to_string |> String.concat_array ~sep:"\n" in
+  Printf.sprintf "\n%s\n" rows
+
 module Tests = struct
   module Trees_No_Logs = Trees (Log.Null_Logger)
   module Trees_Logs = Trees (Log.Console_Logger)
-
-  let to_string a =
-    let string_of_bool = function true -> " " | false -> "X" in
-    let row_to_string row =
-      let row =
-        Array.map row ~f:string_of_bool |> String.concat_array ~sep:" "
-      in
-      Printf.sprintf "|%s|" row
-    in
-    let rows = Array.map a ~f:row_to_string |> String.concat_array ~sep:"\n" in
-    Printf.sprintf "\n%s\n" rows
 
   let assert_equals got ~expected =
     let row_equal a b = Array.equal Bool.equal a b in

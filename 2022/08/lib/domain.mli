@@ -6,3 +6,5 @@ module Trees :
       val make : int list list -> t
       val visibilities : t -> bool array array
     end
+
+val to_string : bool array array -> string
