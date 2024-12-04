@@ -219,5 +219,20 @@ and discards the result of all but one:
 #+END_SRC
 ** Purity
 Haskell is purely functional which means that no value is ever changed inside the language.
-** TODO Currying
+** Currying
+In Haskell every function only takes one parameter.
+
+What about types like =a -> b -> c= then?
+It's a function that returns a type =b -> c=.
+#+BEGIN_SRC haskell
+  f a b = expr
+
+  -- is equvalent to
+
+  f a = \b -> expr
+
+  -- which in turn is equvalent to
+
+  f = \a -> \b -> expr
+#+END_SRC
 ** TODO Strange operators
