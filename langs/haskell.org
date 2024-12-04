@@ -82,7 +82,7 @@ The type of functions are annotated with =->= arrows:
   square :: Double -> Double
   square x = x * x
 #+END_SRC
-This means that square takes a Double and returns a double.
+This means that square takes a Double and returns a Double.
 
 Lists are annotated with square brackets:
 =[Integer]= is the type of a list of integers.
@@ -247,7 +247,7 @@ then what's the point? Twofold:
 - It has very low operator precedence so it can save some parenthesis use.
 - It can be passed wherever a =(a -> b) -> a -> b= is expected.
 #+BEGIN_SRC haskell
-  zipWith ($) [abs, negate, (+1)] [-5, 3, 9] -- [5,-3,10]
+  zipWith ($) [abs, negate, succ] [-5, 3, 9] -- [5,-3,10]
 #+END_SRC
 
 =(>>=)= and =(=<<)= can be tought of as pipes from shell programming.
