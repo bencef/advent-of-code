@@ -1,0 +1,9 @@
+(menhir
+ (modules parser))
+
+(library
+ (inline_tests)
+ (name aoc_2024_03)
+ (libraries core sedlex menhirLib)
+ (preprocess
+  (pps ppx_inline_test sedlex.ppx)))
