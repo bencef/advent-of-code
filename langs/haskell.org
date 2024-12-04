@@ -68,3 +68,6 @@ Haskell is a statically typed language but the compiler can figure out (most of)
 ** TODO List comprehensions
 
 * TODO Semantics
+** TODO Lazyness
+** TODO Pureness
+** TODO Currying
