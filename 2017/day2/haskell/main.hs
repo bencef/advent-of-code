@@ -19,7 +19,7 @@ evenDivs :: [Int] -> Int
 evenDivs as = get [ i `div` j
                   | i <- as
                   , j <- as
-                  , i /= j
+                  , i > j
                   , i `mod` j == 0]
   where
     get [] = 0
