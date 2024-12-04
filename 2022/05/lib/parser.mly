@@ -1,30 +1,6 @@
 %{
     open! Core
     open Supply
-
-    let transpose lines =
-      let fill index map box =
-        let index = index + 1 in (* start from 1 *)
-        match box with
-        | Some box ->
-           let stack =
-             match IntMap.find map index with
-             | None -> []
-             | Some list -> list
-           in
-           let stack = box :: stack in
-           map |> IntMap.set ~key:index ~data:stack
-        | None -> map
-      in
-      let add_line map line =
-        line
-        |> List.foldi ~f:fill ~init:map
-      in
-      lines
-      |> List.fold ~f:(add_line) ~init:IntMap.empty
-      |> IntMap.map ~f:List.rev  (* TODO: do we need this? *)
-      |> IntMap.map ~f:Array.of_list
-
 %}
 %token <Int.t> NUMBER
 
@@ -36,7 +12,7 @@
 
 %token LINE_END
 %token OPEN_BRACKET CLOSE_BRACKET
-%token <Supply.id> ID
+%token <Supply.Id.t> ID
 %token EOF
 %start <program> prog
 %%
@@ -50,7 +26,7 @@ header:
   ;
 
 boxes:
-  | lines = nonempty_list(box_line) { transpose lines }
+  | lines = nonempty_list(box_line) { State.from_rows lines }
   ;
 
 box_line:

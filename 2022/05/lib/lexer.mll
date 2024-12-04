@@ -8,7 +8,7 @@ rule read =
   parse
   | " "            { after_space lexbuf }
   | [ '0' - '9' ]+ { NUMBER(Lexing.lexeme lexbuf |> int_of_string) }
-  | [ 'A' - 'Z' ]  { ID(Lexing.lexeme_char lexbuf 0) }
+  | [ 'A' - 'Z' ]  { ID(Lexing.lexeme_char lexbuf 0 |> Supply.Id.make) }
   | "\n"           { Lexing.new_line lexbuf; LINE_END }
   | "["            { OPEN_BRACKET }
   | "]"            { CLOSE_BRACKET }
