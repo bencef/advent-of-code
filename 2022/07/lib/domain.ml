@@ -24,14 +24,18 @@ module Fs = struct
         && Array.equal equal data1.nodes data2.nodes
     | _ -> false
 
-  let to_string = function
-    | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
-    | Dir_Node data ->
-        Printf.sprintf "Dir: %s files: %d" data.name (data.nodes |> Array.length)
-
   let get_name = function
     | Dir_Node { name; _ } -> name
     | File_Node { name; _ } -> name
+
+  let to_string = function
+    | File_Node data -> Printf.sprintf "File: %d %s" data.size data.name
+    | Dir_Node data ->
+        let names = Array.map data.nodes ~f:get_name in
+        let contents =
+          Printf.sprintf "[ %s ]" (String.concat_array ~sep:"; " names)
+        in
+        Printf.sprintf "Dir: %s contents: %s" data.name contents
 
   module Zipper = struct
     type crumb = { name : string; siblings : t array }
@@ -60,6 +64,27 @@ module Fs = struct
     let rec top z =
       match Nonempty.deconstruct z.trail with _, [] -> z | _ -> top (up z)
 
+    let cd { trail } name =
+      let matches = function
+        | File_Node _ -> false
+        | Dir_Node { name = dir_name; _ } -> String.equal name dir_name
+      in
+      let { name; siblings }, trail = Nonempty.deconstruct trail in
+      let dir, siblings =
+        let match_, siblings = Array.partition_tf siblings ~f:matches in
+        (Array.get match_ 0, siblings)
+      in
+      let up = { name; siblings } in
+      let name, siblings =
+        match dir with
+        | Dir_Node { name; nodes } -> (name, nodes)
+        | File_Node _ -> failwith "impossible"
+      in
+      let crumb = { name; siblings } in
+      match Nonempty.from (crumb :: up :: trail) with
+      | None -> failwith "impossible"
+      | Some trail -> { trail }
+
     let to_fs z =
       let { trail } = top z in
       let { name; siblings }, _empty_trail = Nonempty.deconstruct trail in
@@ -87,9 +112,7 @@ module Fs = struct
     | Ls entries -> Zipper.add_entries z entries
     | Cd Cd_Root -> Zipper.top z
     | Cd Cd_Up -> Zipper.up z
-    | Cd (Cd_Dir name) ->
-        Printf.printf "FIXME: $ cd %s\n" name;
-        z
+    | Cd (Cd_Dir name) -> Zipper.cd z name
 
   let from_commands commands =
     let z = Zipper.from_fs initial_fs in
@@ -130,4 +153,34 @@ module Tests = struct
       Dir_Node { name = get_name fs; nodes = [| file_1; file_2 |] }
     in
     assert_equal fs ~expected
+
+  let%test "a single dir" =
+    let commands = [ Ls [ dir "etc" ]; Cd (Cd_Dir "etc") ] in
+    let fs = from_commands commands in
+    let expected = Dir_Node { name = "/"; nodes = [| dir "etc" |] } in
+    assert_equal fs ~expected
+
+  let%test "Example 1" =
+    let commands =
+      [
+        Cd Cd_Root;
+        Ls [ dir "a"; file 14848514 "b.txt"; file 8504156 "c.dat"; dir "d" ];
+        Cd (Cd_Dir "a");
+        Ls [ dir "e"; file 29116 "f"; file 2557 "g"; file 62596 "h.lst" ];
+        Cd (Cd_Dir "e");
+        Ls [ file 584 "i" ];
+        Cd Cd_Up;
+        Cd Cd_Up;
+        Cd (Cd_Dir "d");
+        Ls
+          [
+            file 4060174 "j";
+            file 8033020 "d.log";
+            file 5626152 "d.ext";
+            file 7214296 "k";
+          ];
+      ]
+    in
+    let fs = from_commands commands in
+    assert_equal fs ~expected:initial_fs
 end
