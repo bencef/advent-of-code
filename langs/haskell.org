@@ -235,4 +235,19 @@ It's a function that returns a type =b -> c=.
 
   f = \a -> \b -> expr
 #+END_SRC
-** TODO Strange operators
+** Strange operators
+Some functions which might be unfamilliar:
+
+=(.)= is function composition.  For example =negate . abs= evaluates
+to a function which takes a number and returns the negative of its
+absolute value.
+
+=($)= is function application. =f $ a= is the same as =f a=.
+then what's the point? Twofold:
+- It has very low operator precedence so it can save some parenthesis use.
+- It can be passed wherever a =(a -> b) -> a -> b= is expected.
+#+BEGIN_SRC haskell
+  zipWith ($) [abs, negate, (+1)] [-5, 3, 9] -- [5,-3,10]
+#+END_SRC
+
+=(>>=)= and =(=<<)= can be tought of as pipes from shell programming.
