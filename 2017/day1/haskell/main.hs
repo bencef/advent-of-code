@@ -10,13 +10,13 @@ adder a b = if a == b
   then Just $ digitToInt a
   else Nothing
 
-solve :: Part -> String -> Integer
+solve :: Part -> String -> Int
 solve part digits = case part of
   Part1 -> go 1 digits
   Part2 -> go ((length digits) `div` 2) digits
   where
-    go :: Int -> String -> Integer
-    go offset digits = sum $ map toInteger (catMaybes duplicates)
+    go :: Int -> String -> Int
+    go offset digits = sum $ catMaybes duplicates
       where
         duplicates :: [Maybe Int]
         duplicates = circularZip adder digits
