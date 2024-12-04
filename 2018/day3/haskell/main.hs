@@ -41,7 +41,8 @@ data Claim =
         , claimRect :: CoordRectangle }
   deriving (Eq, Show)
 
-type Table = Map (Int, Int) Tile
+type Coord = (Int, Int)
+type Table = Map Coord Tile
 
 toCoordRect :: Rectangle -> CoordRectangle
 toCoordRect (Rect x0 y0 w h) = CoordRect x0 y0 (x0 + w - 1) (y0 + h - 1)
@@ -76,7 +77,7 @@ overlapRect a b = let (CoordRect ax0 ay0 ax1 ay1) = a
                       vertiRange = overlapRange ay0 ay1 by0 by1
                   in maybeCoordRect horiRange vertiRange
 
-tableSize :: [Claim] -> (Int, Int)
+tableSize :: [Claim] -> Coord
 tableSize = go 0 0
   where
     go maxX maxY [] = (maxX, maxY)
@@ -84,16 +85,16 @@ tableSize = go 0 0
       let (Claim _ (CoordRect _ _ maxX' maxY')) = head
       in go (max maxX maxX') (max maxY maxY') rest
 
-getCell :: Table -> (Int, Int) -> Tile
+getCell :: Table -> Coord -> Tile
 getCell t c = M.findWithDefault Empty c t
 
-coverCell :: (Int, Int) -> Table -> Table
+coverCell :: Coord -> Table -> Table
 coverCell = M.alter alter
   where
     alter Nothing = Just Covered
     alter (Just _) = Just Overlapped
 
-getCoords :: CoordRectangle -> [(Int, Int)]
+getCoords :: CoordRectangle -> [Coord]
 getCoords (CoordRect x0 y0 x1 y1) =
   [(x, y) | x <- [x0..x1], y <- [y0..y1]]
 
