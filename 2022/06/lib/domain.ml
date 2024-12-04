@@ -55,7 +55,9 @@ module Signal = struct
   let message_start signal =
     let ( let* ) = Option.Let_syntax.( >>= ) in
     let message_marker_len = 14 in
-    let* index, signal = start signal in
+    (* WOW: messages don't start after packet marker *)
+    (* let* index, signal = start signal in *)
+    let index = 4 in
     let* signal = make_with_window_size message_marker_len signal.rest in
     let index = index + message_marker_len in
     seek ~is_found:is_at_message_marker signal index
@@ -67,6 +69,19 @@ module Tests = struct
     let signal = String.to_list signal |> make |> Option.value_exn in
     let signal_start = start signal in
     match signal_start with
+    | None -> failwith "Didn't find a signal starter\n"
+    | Some (start, _) when Int.(start = expected_index) -> true
+    | Some (start, _) ->
+        failwith
+          (Printf.sprintf
+             "Found signal starter at: %d, expected signal starter at: %d\n"
+             start expected_index)
+
+  let assert_message_index ~signal ~expected_index =
+    let open Signal in
+    let signal = String.to_list signal |> make |> Option.value_exn in
+    let message_start = message_start signal in
+    match message_start with
     | None -> failwith "Didn't find a signal starter\n"
     | Some (start, _) when Int.(start = expected_index) -> true
     | Some (start, _) ->
@@ -94,4 +109,27 @@ module Tests = struct
   let%test "given example 4" =
     let input = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw" in
     assert_starter_index ~signal:input ~expected_index:11
+
+                         (* Part 2 *)
+
+  let%test "part 2 given example 1" =
+    let input = "mjqjpqmgbljsphdztnvjfqwrcgsmlb" in
+    assert_message_index ~signal:input ~expected_index:19
+
+  let%test "part 2 given example 2" =
+    let input = "bvwbjplbgvbhsrlpgdmjqwftvncz" in
+    assert_message_index ~signal:input ~expected_index:23
+
+  let%test "part 2 given example 3" =
+    let input = "nppdvjthqldpwncqszvftbrmjlhg" in
+    assert_message_index ~signal:input ~expected_index:23
+
+  let%test "part 2 given example 4" =
+    let input = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg" in
+    assert_message_index ~signal:input ~expected_index:29
+
+  let%test "part 2 given example 5" =
+    let input = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw" in
+    assert_message_index ~signal:input ~expected_index:26
+
 end
