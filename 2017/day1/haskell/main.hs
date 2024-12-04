@@ -16,7 +16,7 @@ solve digits = sum $
     duplicates :: [Maybe Int]
     duplicates = circularZip adder digits
     circularZip :: (a -> a -> b) -> [a] -> [b]
-    circularZip f as = zipWith f as (tail as ++ as)
+    circularZip f as = zipWith f as (drop 1 (cycle as))
 
 main :: IO ()
 main = readFile input >>= putStrLn.show.solve.(filter isDigit)
