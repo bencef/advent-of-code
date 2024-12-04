@@ -1,0 +1,46 @@
+#+TITLE: Haskell
+#+OPTIONS: toc:nil num:nil
+
+* Syntax
+** Structure
+Haskell has an indentation based syntax like python.
+
+One expression can be divided into multiple lines, as long as subequent lines are indented deeper.
+#+BEGIN_SRC haskell
+  if a < 3 then "smaller" else "bigger"
+
+  -- is the same as
+
+  if a < 3
+    then "smaller"
+    else "bigger"
+#+END_SRC
+Also blocks can be written on one line inside curly braces and expressions separated by semicolon.
+#+BEGIN_SRC haskell
+  form-with-block
+    expr1
+    expr2
+    expr3
+
+  -- is the same as
+
+  form-with-block { expr1 ; expr2 ; expr3 }
+#+END_SRC
+** Comments
+Inline comments start with =--= (similar to =//= in c-like languages)
+
+Comment blocks start with ={-= and end with =-}= (similar to =/*= and =*/= in c-like languages)
+** TODO Functions
+
+** TODO Types
+Haskell is a statically typed language but the compiler can figure out (most of) the type of expressions.
+
+
+** TODO Pattern matching
+** TODO if
+** TODO case
+** TODO let
+** TODO where
+** TODO List comprehensions
+
+* TODO Semantics

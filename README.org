@@ -1,0 +1,18 @@
+#+TITLE: Advent of Code
+#+OPTIONS: num:nil toc:nil
+
+* About
+These are my solutions for the [[http://adventofcode.com/][advent of code]] coding challenge.
+
+* File structure
+
+All solutions are under the path =<year>/<day>/<programming language>=.
+
+* Languages
+
+Here's a brief summary for the languages used.
+The goal is not to give a comprehensive or even fair overview of the languages,
+but to give enough information so the solutions are readable for anyone
+(who already knows a few programming languages)
+
+- [[file:langs/haskell.org][Haskell]]
