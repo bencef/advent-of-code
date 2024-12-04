@@ -154,4 +154,96 @@ module Tests = struct
        let a = stack_to_string a in
        let b = stack_to_string b in
        failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 1 from two" =
+    let rows = [ [ Some 'A' ]
+               ; [ Some 'B' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 1 with
+    | None -> false
+    | Some ([|'A'|], [|'B'|]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 1 from three" =
+    let rows = [ [ Some 'A' ]
+               ; [ Some 'B' ]
+               ; [ Some 'C' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 1 with
+    | None -> false
+    | Some ([|'A'|], [|'B'; 'C'|]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 2 from three" =
+    let rows = [ [ Some 'A' ]
+               ; [ Some 'B' ]
+               ; [ Some 'C' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 2 with
+    | None -> false
+    | Some ([|'A'; 'B'|], [|'C'|]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 2 from two" =
+    let rows = [ [ Some 'A' ]
+               ; [ Some 'B' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 2 with
+    | None -> false
+    | Some ([|'A'; 'B'|], [||]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 3 from three" =
+    let rows = [ [ Some 'A' ]
+               ; [ Some 'B' ]
+               ; [ Some 'C' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 3 with
+    | None -> false
+    | Some ([|'A'; 'B'; 'C'|], [||]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "move zero to zero" =
+    let rows = [ [ None; None ] ] in
+    let state = State.from_rows rows in
+    let source_stack = test_get state 1 in
+    let target_stack = test_get state 2 in
+    match Stack.add_rev ~to_add:source_stack target_stack with
+    | [||] -> true
+    | a ->
+       let a = stack_to_string a in
+       failwith (Printf.sprintf "Unexpected result: %s" a)
+
+  let%test "move three to three" =
+    let rows = [ [ Some 'A'; Some 'D' ]
+               ; [ Some 'B'; Some 'E' ]
+               ; [ Some 'C'; Some 'F' ] ] in
+    let state = State.from_rows rows in
+    let source_stack = test_get state 1 in
+    let target_stack = test_get state 2 in
+    match Stack.add_rev ~to_add:source_stack target_stack with
+    | [|'C'; 'B'; 'A'; 'D'; 'E'; 'F'|] -> true
+    | a ->
+       let a = stack_to_string a in
+       failwith (Printf.sprintf "Unexpected result: %s" a)
 end
