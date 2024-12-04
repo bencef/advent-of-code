@@ -1,3 +1,4 @@
 *.hi
 *.o
-2017/day1/haskell/main
+/2017/day1/haskell/main
+/2017/day2/haskell/main
