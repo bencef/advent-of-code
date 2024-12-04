@@ -166,49 +166,49 @@ module Tests = struct
     assert_equals visibilities ~expected
 
   let%test "empty row seeing distances" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [||] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [||] in
     Array.equal Int.equal result expected
 
   let%test "edge of row seeing nothing" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0 |] in
     Array.equal Int.equal result expected
 
   let%test "same height seeing only neighbour" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5; 5 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0; 1 |] in
     Array.equal Int.equal result expected
 
   let%test "higher tree seeing the lower neighbour" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5; 6 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0; 1 |] in
     Array.equal Int.equal result expected
 
   let%test "higher tree seeing both lower trees" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5; 5; 6 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0; 1; 2 |] in
     Array.equal Int.equal result expected
 
   let%test "rightmost tree only seeing same height neighbour" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5; 6; 6 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0; 1; 1 |] in
     Array.equal Int.equal result expected
 
   let%test "higher tree seeing over gap" =
-    let module Trees = Trees (Log.Null_Logger) in
+    let module Trees = Trees_No_Logs in
     let row = [| 5; 4; 6 |] in
     let result = Trees.collect_seeing_distance Trees.Left row in
     let expected = [| 0; 1; 2 |] in
