@@ -24,7 +24,7 @@ module Range = struct
 
   let (=) a b =
     let open Int in
-    a.start = b.start && a.end_ = a.end_
+    a.start = b.start && a.end_ = b.end_
 
   let is_full_overlap a b =
     match get_overlap a b with
@@ -35,3 +35,9 @@ end
 
 
 type elf = { sections: id Range.t }
+
+let part1 pairs =
+  let has_overlap (a, b) = Range.is_full_overlap a.sections b.sections in
+  pairs
+  |> Array.map ~f:(has_overlap)
+  |> Array.count ~f:(Fun.id)

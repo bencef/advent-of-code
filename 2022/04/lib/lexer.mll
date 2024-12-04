@@ -6,4 +6,8 @@
 
 rule read =
   parse
-  | eof  { EOF }
+  | '\n'            { new_line lexbuf; read lexbuf}
+  | ','             { COMMA }
+  | '-'             { DASH }
+  | [ '0' - '9' ] + { ID (lexeme lexbuf |> Int.of_string) }
+  | eof             { EOF }
