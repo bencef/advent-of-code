@@ -212,6 +212,7 @@ and discards the result of all but one:
 #+BEGIN_SRC python
   [ x * x for x in range(10000) ] [0]
 #+END_SRC
-** TODO Pureness
+** Purity
+Haskell is purely functional which means that no value is ever changed inside the language.
 ** TODO Currying
 ** TODO Strange operators
