@@ -117,7 +117,7 @@ For example the following are equivalent:
 #+END_SRC
 *Note:* these implementations don't take into account negative arguments.
 ** if
-In haskell =if= is an expression similar to the trinary operator in other languages.
+In haskell =if= is an expression similar to the ternary operator in other languages.
 #+BEGIN_SRC haskell
   if pred then expr1 else expr2
 #+END_SRC
