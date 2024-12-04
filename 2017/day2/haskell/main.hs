@@ -5,6 +5,8 @@ import Data.Char (isDigit)
 import Data.Text (Text(..))
 import qualified Data.Text as T (null, pack, split, unpack)
 
+data Part = Part1 | Part2
+
 maxDiff :: [Int] -> Int
 maxDiff [] = 0
 maxDiff (a:as) = go a a as
@@ -12,6 +14,13 @@ maxDiff (a:as) = go a a as
     go :: Int -> Int -> [Int] -> Int
     go minV maxV [] = maxV - minV
     go minV maxV (a:as) = go (min minV a) (max maxV a) as
+
+evenDivs :: [Int] -> Int
+evenDivs as = get [ i `div` j | i <- as, j <- as, i `mod` j == 0]
+  where
+    get [] = 0
+    get (1:as) = get as
+    get (a:as) = a
 
 readRows :: Text -> [[Int]]
 readRows = map (collectInts.(T.split (=='\t'))) . getRows
@@ -21,5 +30,9 @@ readRows = map (collectInts.(T.split (=='\t'))) . getRows
     getRows :: Text -> [Text]
     getRows = filter (not.T.null) . T.split (=='\n')
 
+solve :: Part -> [[Int]] -> [Int]
+solve Part1 = map maxDiff
+solve Part2 = map evenDivs
+
 main :: IO ()
-main = putStrLn.show.sum.(map maxDiff).readRows.T.pack =<< readFile "../input"
+main = putStrLn.show.sum.(solve Part2).readRows.T.pack =<< readFile "../input"
