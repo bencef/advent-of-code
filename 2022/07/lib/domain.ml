@@ -36,6 +36,20 @@ module Fs = struct
     let set_focus z entry =
       let focus = Some entry in
       { z with focus }
+
+    let commit { trail; focus } =
+      match focus with
+      | None -> failwith "Empty focus"
+      | Some entry ->
+          let { name; siblings }, trail = Nonempty.deconstruct trail in
+          let siblings = Array.append [| entry |] siblings in
+          let crumb = { name; siblings } in
+          let trail =
+            match Nonempty.from trail with
+            | None -> Nonempty.singleton crumb
+            | Some trail -> Nonempty.push crumb trail
+          in
+          { trail; focus = None }
   end
 
   let from_commands _commmands = initial_fs
@@ -81,5 +95,18 @@ module Tests = struct
     let z = Zipper.set_focus z file in
     let fs = Zipper.to_fs z in
     let expected = Dir_Node { name = get_name fs; nodes = [| file |] } in
+    assert_equal fs ~expected
+
+  let%test "initial FS with two files can be zipped back up" =
+    let z = Zipper.from_fs initial_fs in
+    let file_1 = File_Node { name = "passwd"; size = 42 } in
+    let file_2 = File_Node { name = "groups"; size = 142 } in
+    let z = Zipper.set_focus z file_1 in
+    let z = Zipper.commit z in
+    let z = Zipper.set_focus z file_2 in
+    let fs = Zipper.to_fs z in
+    let expected =
+      Dir_Node { name = get_name fs; nodes = [| file_1; file_2 |] }
+    in
     assert_equal fs ~expected
 end
