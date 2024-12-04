@@ -46,10 +46,54 @@ module Tests = struct
     Array.length visibilities = Array.length (Trees.visibilities forest)
 
   let%test "single tree is always visible" =
-    let module Trees = Trees_Logs in
+    let module Trees = Trees_No_Logs in
     let rows = [ [ 0 ] ] in
     let forest = Trees.make rows in
     let visibilities = Trees.visibilities forest in
     let expected = [| [| true |] |] in
+    assert_equals visibilities ~expected
+
+  let%test "outer layers are always visible" =
+    let module Trees = Trees_No_Logs in
+    let rows = [ [ 0; 9 ]; [ 9; 0 ] ] in
+    let expected = [| [| true; true |]; [| true; true |] |] in
+    let forest = Trees.make rows in
+    let visibilities = Trees.visibilities forest in
+    assert_equals visibilities ~expected
+
+  let%test "smae height is not visible" =
+    let module Trees = Trees_No_Logs in
+    let rows = [ [ 0; 0; 0 ]; [ 0; 0; 0 ]; [ 0; 0; 0 ] ] in
+    let expected =
+      [|
+        [| true; true; true |]; [| true; false; true |]; [| true; true; true |];
+      |]
+    in
+    let forest = Trees.make rows in
+    let visibilities = Trees.visibilities forest in
+    assert_equals visibilities ~expected
+
+  let%test "example 1" =
+    let module Trees = Trees_No_Logs in
+    let rows =
+      [
+        [ 3; 0; 3; 7; 3 ];
+        [ 2; 5; 5; 1; 2 ];
+        [ 6; 5; 3; 3; 2 ];
+        [ 3; 3; 5; 4; 9 ];
+        [ 3; 5; 3; 9; 0 ];
+      ]
+    in
+    let expected =
+      [|
+        [| true; true; true; true; true |];
+        [| true; true; true; false; true |];
+        [| true; true; false; true; true |];
+        [| true; false; true; false; true |];
+        [| true; true; true; true; true |];
+      |]
+    in
+    let forest = Trees.make rows in
+    let visibilities = Trees.visibilities forest in
     assert_equals visibilities ~expected
 end
