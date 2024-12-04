@@ -81,14 +81,33 @@ module Fs = struct
       commit z
 
     let add_entries z entries = List.fold entries ~init:z ~f:add_entry
+
+    let up z =
+      match z.focus with
+      | Some _ -> failwith "trying to go up with non-empty focus."
+      | None -> (
+          match Nonempty.deconstruct z.trail with
+          | _, [] -> failwith "can't go up from root"
+          | { name; siblings = nodes }, crumb :: trail ->
+              let dir = Dir_Node { name; nodes } in
+              let siblings = Array.append crumb.siblings [| dir |] in
+              let crumb = { crumb with siblings } in
+              let trail =
+                match Nonempty.from trail with
+                | None -> Nonempty.singleton crumb
+                | Some trail -> Nonempty.push crumb trail
+              in
+              { trail; focus = None })
+
+    let rec top z =
+      match Nonempty.deconstruct z.trail with _, [] -> z | _ -> top (up z)
   end
 
   let run_command z = function
     | Ls entries -> Zipper.add_entries z entries
-    | Cd Cd_Root ->
-        Printf.printf "FIXME: ignoring \"$ cd /\"\n";
-        z
-    | _other -> failwith "unhandled"
+    | Cd Cd_Root -> Zipper.top z
+    | Cd Cd_Up -> Zipper.up z
+    | Cd (Cd_Dir name) -> Printf.printf "FIXME: $ cd %s\n" name; z
 
   let from_commands commands =
     let z = Zipper.from_fs initial_fs in
