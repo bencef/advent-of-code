@@ -60,6 +60,11 @@ Defining a function is just defining an equation:
 #+BEGIN_SRC haskell
   square a = a * a
 #+END_SRC
+** Lambdas
+Lambdas can be written as:
+#+BEGIN_SRC haskell
+  \a b -> exprUsingAandB
+#+END_SRC
 ** Types
 Haskell is a statically typed language but the compiler can figure out (most of) the type of expressions.
 
