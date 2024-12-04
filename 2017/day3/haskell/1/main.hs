@@ -83,7 +83,7 @@ walkTo n = walk start subtractingSteps stepsToSquare
     closer :: Integer -> Integer
     closer = if closerToTop then pred else succ
     start :: Integer
-    start = if closerToTop then squareOfSide else (square (side-1))+1
+    start = if closerToTop then squareOfSide else square (side-1) + 1
     closerToTop :: Bool
     closerToTop = squareOfSide - n < side
 
@@ -107,4 +107,4 @@ squareRoot n =
    in  head $ dropWhile (not . isRoot) iters
 
 main :: IO ()
-main = putStrLn.show.steps.read =<< readFile "../../input"
+main = print . steps . read =<< readFile "../../input"

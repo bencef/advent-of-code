@@ -24,4 +24,4 @@ solve part digits = sum duplicates
           Part2 -> length digits `div` 2
 
 main :: IO ()
-main = putStrLn.show.(solve Part2).(filter isDigit) =<< readFile "../input"
+main = print . solve Part2 . filter isDigit =<< readFile "../input"

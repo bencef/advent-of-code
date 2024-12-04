@@ -26,7 +26,7 @@ evenDivs as = get [ i `div` j
     get (a:as) = a
 
 readRows :: Text -> [[Int]]
-readRows = map (collectInts.(T.split (=='\t'))) . getRows
+readRows = map (collectInts . T.split (=='\t')) . getRows
   where
     collectInts :: [Text] -> [Int]
     collectInts = map read . filter (all isDigit) . map T.unpack
@@ -41,4 +41,4 @@ solve part = sum . map solver
      Part2 -> evenDivs
 
 main :: IO ()
-main = putStrLn.show.(solve Part2).readRows.T.pack =<< readFile "../input"
+main = print . solve Part2 . readRows . T.pack =<< readFile "../input"
