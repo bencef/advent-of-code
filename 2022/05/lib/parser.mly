@@ -14,11 +14,11 @@
 %token OPEN_BRACKET CLOSE_BRACKET
 %token <Supply.Id.t> ID
 %token EOF
-%start <program> prog
+%start <Program.t> prog
 %%
 
 prog:
-  | stacks = header; LINE_END; LINE_END; instructions = instructions; EOF { { stacks; instructions } }
+  | stacks = header; LINE_END; LINE_END; instructions = instructions; EOF { { Program.stacks; instructions } }
   ;
 
 header:

@@ -23,6 +23,13 @@ module Stack = struct
   let add_rev stack ~to_add =
     let rev = Array.rev to_add in
     Array.concat [rev; stack]
+
+  let get_top stack =
+    try
+      Some (Array.get stack 0)
+    with
+    | _ -> None
+
 end
 
 module State = struct
@@ -78,16 +85,28 @@ type instruction =
   ; to_: int
   }
 
-type program =
-  { stacks: State.t
-  ; instructions: instruction Array.t
-  }
+module Program = struct
+  type t = { stacks: State.t
+           ; instructions: instruction Array.t
+           }
 
-let get_top stack =
-  try
-    Some (Array.get stack 0)
-  with
-  | _ -> None
+  let run prog =
+    let {stacks; instructions} = prog in
+    let step_one stacks {amount; from; to_} =
+      let maybe_update =
+        let (let*) =  Option.Let_syntax.(>>=) in
+        let* to_stack = State.get stacks to_ in
+        let* from_stack = State.get stacks from in
+        let* (to_add, from_stack) = Stack.pop from_stack amount in
+        let stacks = State.set stacks from from_stack in
+        let to_stack = Stack.add_rev ~to_add to_stack in
+        let stacks = State.set stacks to_ to_stack in
+        Some stacks
+      in maybe_update |> Option.value ~default:stacks
+    in
+    Array.fold instructions ~init:stacks ~f:step_one
+
+end
 
 module Tests = struct
   let test_get state index =
@@ -97,9 +116,9 @@ module Tests = struct
     let data_string =
       stack
       |> Array.map ~f:(fun c -> Printf.sprintf "%c" c)
-      |> String.concat_array ~sep:" "
+      |> String.concat_array ~sep:"; "
     in
-    Printf.sprintf "[%s]\n" data_string
+    Printf.sprintf "[|%s|]" data_string
 
   let%test "pop 0 from empty" =
     let rows = [ [ None ] ] in
@@ -108,6 +127,29 @@ module Tests = struct
     match Stack.pop stack 0 with
     | None -> failwith "Couldn't split empty stack"
     | Some ([||], [||]) -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 1 from empty" =
+    let rows = [ [ None ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 1 with
+    | None -> true
+    | Some (a, b) ->
+       let a = stack_to_string a in
+       let b = stack_to_string b in
+       failwith (Printf.sprintf "Unexpected result: (%s, %s)" a b)
+
+  let%test "pop 1 from singleton" =
+    let rows = [ [ Some 'K' ] ] in
+    let state = State.from_rows rows in
+    let stack = test_get state 1 in
+    match Stack.pop stack 1 with
+    | None -> false
+    | Some ([|'K'|], [||]) -> true
     | Some (a, b) ->
        let a = stack_to_string a in
        let b = stack_to_string b in

@@ -8,6 +8,7 @@ module Stack : sig
   type t
   val pop : t -> int -> (t * t) option
   val add_rev : t -> to_add:t -> t
+  val get_top : t -> Id.t option
 end
 
 module State : sig
@@ -21,5 +22,8 @@ module State : sig
 end
 
 type instruction = { amount : int; from : int; to_ : int; }
-type program = { stacks : State.t; instructions : instruction array; }
-val get_top : Stack.t -> Id.t option
+
+module Program : sig
+  type t = { stacks : State.t; instructions : instruction array; }
+  val run : t -> State.t
+end
