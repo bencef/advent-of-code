@@ -30,8 +30,32 @@ Also blocks can be written on one line inside curly braces and expressions separ
 Inline comments start with =--= (similar to =//= in c-like languages)
 
 Comment blocks start with ={-= and end with =-}= (similar to =/*= and =*/= in c-like languages)
-** TODO Functions
+** Functions
+Haskell being a functional language, functions are central parts of the language.
+This means it has to be easy to define and use them.
 
+A function call is the name of a function and the parameters separated by whitespace.
+#+BEGIN_SRC haskell
+  f a b c
+#+END_SRC
+Is equivalent to the following python code:
+#+BEGIN_SRC python
+  f(a, b, c)
+#+END_SRC
+Function names can be almost anything but there are conventions:
+- Function names are camelCase
+- Variants of functions are named with an apostrophe at the end (e.g., foldl and foldl')
+- Functions containing only special characters in their name can be used as infix
+
+For example =+= is just like any function and can be used in a prefix form in parenthesis:
+#+BEGIN_SRC haskell
+  (+) 3 5 == 3 + 5 -- True
+#+END_SRC
+
+Defining a function is just defining an equation:
+#+BEGIN_SRC haskell
+  square a = a * a
+#+END_SRC
 ** TODO Types
 Haskell is a statically typed language but the compiler can figure out (most of) the type of expressions.
 
