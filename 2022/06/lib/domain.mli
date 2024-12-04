@@ -3,4 +3,5 @@ module Signal :
     type t
     val make : char list -> t option
     val start : t -> int option
+    val message_start : t -> int option
   end

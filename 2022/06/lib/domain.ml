@@ -30,6 +30,8 @@ module Signal = struct
     in
     let start_index = 4 in
     start' signal start_index
+
+  let message_start _signal = None
 end
 
 module Tests = struct
