@@ -12,3 +12,7 @@ module Fs : sig
 
   val from_commands : command_invokation list -> t
 end
+
+module Actions : sig
+  val dirs_with_size : Fs.t -> (int * string) array
+end

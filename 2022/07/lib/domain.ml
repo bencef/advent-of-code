@@ -126,13 +126,6 @@ module Actions = struct
   type dir = { size : int; name : string; sub_dirs : dir list }
 
   let rec flatten { size; name; sub_dirs } =
-    let size =
-      let sizes = List.map sub_dirs ~f:(fun d -> d.size) in
-      let sub_size =
-        List.reduce sizes ~f:Int.( + ) |> Option.value ~default:0
-      in
-      size + sub_size
-    in
     let subs = List.map sub_dirs ~f:flatten in
     [| (size, name) |] :: subs |> Array.concat
 
@@ -145,7 +138,9 @@ module Actions = struct
       | Fs.Dir_Node { name; nodes } :: rest ->
           let root = { size = 0; name; sub_dirs = [] } in
           let d = aux ~acc:root (Array.to_list nodes) in
-          let acc = { acc with sub_dirs = d :: acc.sub_dirs } in
+          let acc =
+            { acc with sub_dirs = d :: acc.sub_dirs; size = acc.size + d.size }
+          in
           aux ~acc rest
     in
     match fs with
