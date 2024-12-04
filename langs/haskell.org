@@ -202,7 +202,7 @@ is equvalent to the Python list comprehension:
 #+BEGIN_SRC python
   [ x * x for x in xs if x % 3 == 0 ]
 #+END_SRC
-* TODO Semantics
+* Semantics
 ** Lazyness
 Haskell has non-strict evaluation. Which means that expressions are only evaluated when needed.
 Take the following example:
@@ -251,3 +251,6 @@ then what's the point? Twofold:
 #+END_SRC
 
 =(>>=)= and =(=<<)= can be tought of as pipes from shell programming.
+* Searching
+Looking up functions I recommend [[https://www.haskell.org/hoogle/][hoogle]].
+For looking up language elements / concepts the [[https://wiki.haskell.org/Haskell][Haskell wiki]] is an excellent source.
