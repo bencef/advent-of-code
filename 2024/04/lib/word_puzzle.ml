@@ -4,7 +4,13 @@ type letter = X | M | A | S
 type t = letter array array
 type index = { row : int; col : int }
 
-let from_lists data = data |> Array.of_list |> Array.map ~f:Array.of_list
+let from_lists data =
+  let result = data |> Array.of_list |> Array.map ~f:Array.of_list in
+  let row_num = Array.length result in
+  let col_num = if row_num = 0 then 0 else Array.length result.(0) in
+  if not (Array.for_all result ~f:(fun a -> Array.length a = col_num)) then
+    failwith "array not rectangular"
+  else result
 
 let find_indices t letter =
   Array.concat_mapi t ~f:(fun row col ->
@@ -42,7 +48,7 @@ let star_indices t index =
         if Array.length res = 4 then Some res else None)
     |> Array.of_list
 
-let at t { row; col } = t.(row).(col)
+let at t { row; col } = Array.unsafe_get (Array.unsafe_get t row) col
 
 module Tests = struct
   open Testing
