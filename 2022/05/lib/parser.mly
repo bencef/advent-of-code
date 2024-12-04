@@ -1,10 +1,19 @@
 %{
-  open! Core
+    open! Core
+    open Supply
 %}
 %token EOF
-%start <Supply.program Option.t> prog
+%start <program> prog
 %%
 
 prog:
-  | EOF { None }
+  | stacks = header; instructions = instructions; EOF { { stacks; instructions } }
+  ;
+
+header:
+  | (* TODO *) { IntMap.empty }
+  ;
+
+instructions:
+  | (* TODO *) { [||] }
   ;
