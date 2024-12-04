@@ -36,5 +36,5 @@ cd_invokation:
   | dir = NAME { Cd_Dir dir }
 
 ls_output:
-  | size = SIZE; name = NAME; NEW_LINE { File { size; name }}
-  | DIR; name = NAME; NEW_LINE { Dir name }
+  | size = SIZE; name = NAME; NEW_LINE { file  size name }
+  | DIR; name = NAME; NEW_LINE { dir name }

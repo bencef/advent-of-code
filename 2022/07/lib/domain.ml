@@ -6,9 +6,11 @@ module Fs = struct
   type dir_data = { name : string; nodes : t array }
   and t = Dir_Node of dir_data | File_Node of file_data
 
-  type entry = Dir of string | File of file_data
+  let dir name = Dir_Node { name; nodes = [||] }
+  let file size name = File_Node { size; name }
+
   type dir_entry = Cd_Root | Cd_Up | Cd_Dir of string
-  type command_invokation = Ls of entry list | Cd of dir_entry
+  type command_invokation = Ls of t list | Cd of dir_entry
 
   let initial_fs = Dir_Node { name = "/"; nodes = [||] }
 
@@ -75,11 +77,6 @@ module Fs = struct
       { trail }
 
     let add_entry z entry =
-      let entry =
-        match entry with
-        | Dir name -> Dir_Node { name; nodes = [||] }
-        | File { name; size } -> File_Node { name; size }
-      in
       Printf.printf "Adding: %s\n" (to_string entry);
       commit z entry
 
@@ -116,22 +113,19 @@ module Tests = struct
 
   let%test "initial FS with one file can be zipped back up" =
     let z = Zipper.from_fs initial_fs in
-    let file = File { name = "passwd"; size = 42 } in
+    let file = File_Node { name = "passwd"; size = 42 } in
     let z = Zipper.add_entry z file in
     let fs = Zipper.to_fs z in
-    let file = File_Node { name = "passwd"; size = 42 } in
     let expected = Dir_Node { name = get_name fs; nodes = [| file |] } in
     assert_equal fs ~expected
 
   let%test "initial FS with two files can be zipped back up" =
     let z = Zipper.from_fs initial_fs in
-    let file_1 = File { name = "passwd"; size = 42 } in
-    let file_2 = File { name = "groups"; size = 142 } in
+    let file_1 = File_Node { name = "passwd"; size = 42 } in
+    let file_2 = File_Node { name = "groups"; size = 142 } in
     let z = Zipper.add_entry z file_1 in
     let z = Zipper.add_entry z file_2 in
     let fs = Zipper.to_fs z in
-    let file_1 = File_Node { name = "passwd"; size = 42 } in
-    let file_2 = File_Node { name = "groups"; size = 142 } in
     let expected =
       Dir_Node { name = get_name fs; nodes = [| file_1; file_2 |] }
     in
