@@ -2,9 +2,9 @@
   open! Core
 %}
 %token EOF
-%start <unit> prog
+%start <Supply.program Option.t> prog
 %%
 
 prog:
-  | EOF { () }
+  | EOF { None }
   ;
