@@ -1,0 +1,23 @@
+(lang dune 3.16)
+
+(name aoc_2024_05)
+
+(generate_opam_files true)
+
+(using menhir 3.0)
+
+(source
+ (github bencef/advent-of-code))
+
+(authors "Bence Fabian")
+
+(license MIT)
+
+(package
+ (name aoc_2024_05)
+ (synopsis "OCaml solution for Advent of Code 2024 / dec / 05.")
+ (depends ocaml dune core ppx_inline_test menhir sedlex)
+ (tags
+  (topics "advent of code" "recreational programming")))
+
+; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
