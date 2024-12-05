@@ -17,6 +17,6 @@ let () =
   let x_indices = find_indices puzzle X in
   let coords_to_check = Array.concat_map x_indices ~f:(star_indices puzzle) in
   let result =
-    Array.filter coords_to_check ~f:(check_coords puzzle) |> Array.length
+    Array.count coords_to_check ~f:(check_coords puzzle)
   in
   Printf.printf "%d\n" result

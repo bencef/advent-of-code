@@ -3,6 +3,8 @@ open! Core
 type letter = X | M | A | S
 type t = letter array array
 type index = { row : int; col : int }
+type step = index -> index
+type stepper = { fwd : step; back : step }
 
 let from_lists data =
   let result = data |> Array.of_list |> Array.map ~f:Array.of_list in
@@ -17,37 +19,50 @@ let find_indices t letter =
       Array.filter_mapi col ~f:(fun col l ->
           if phys_equal l letter then Some { row; col } else None))
 
-let star_indices t index =
+let inside_puzzle t { row; col } =
   let row_num = Array.length t in
   let col_num = if row_num = 0 then 0 else Array.length t.(0) in
-  let inside_puzzle { row; col } =
-    let valid actual ~max_val = Int.(actual >= 0 && actual < max_val) in
-    valid row ~max_val:row_num && valid col ~max_val:col_num
-  in
-  if not (inside_puzzle index) then [||]
-  else
-    let steps =
-      let modify row_f col_f { row; col } =
-        { row = row_f row; col = col_f col }
-      in
-      let inc x = x + 1 in
-      let dec x = x - 1 in
-      let stay x = x in
-      let dirs = [ stay; inc; dec ] in
-      (* this generates a stay/stay, but that should be fine, just drop the head *)
-      List.concat_map dirs ~f:(fun row_dir ->
-          List.map dirs ~f:(fun col_dir -> modify row_dir col_dir))
-      |> fun l -> List.drop l 1
-    in
+  let valid actual ~max_val = Int.(actual >= 0 && actual < max_val) in
+  valid row ~max_val:row_num && valid col ~max_val:col_num
+
+let steps =
+  let modify row_f col_f { row; col } = { row = row_f row; col = col_f col } in
+  let inc x = x + 1 in
+  let dec x = x - 1 in
+  let stay x = x in
+  let dirs = [ [| stay; stay |]; [| inc; dec |]; [| dec; inc |] ] in
+  (* this generates a stay/stay, but that should be fine, just drop the head *)
+  List.concat_map dirs ~f:(fun row_dir ->
+      List.map dirs ~f:(fun col_dir ->
+          let fwd = modify row_dir.(0) col_dir.(0) in
+          let back = modify row_dir.(1) col_dir.(1) in
+          { fwd; back }))
+  |> fun l -> List.drop l 1
+
+let apply_n_times ~n ~f ~init =
+  let rec go acc n = if n = 0 then acc else go (f acc) (n - 1) in
+  go init n
+
+let make_shapes offsets =
+  let o_length = List.length offsets in
+  fun puzzle pos ->
     List.filter_map steps ~f:(fun step ->
         let open Sequence in
         let res =
-          unfold ~f:(fun last -> Some (last, step last)) ~init:index
-          |> Fun.flip take 4 |> filter ~f:inside_puzzle |> to_array
+          map (of_list offsets) ~f:(fun offset ->
+              let step = if offset < 0 then step.back else step.fwd in
+              apply_n_times ~n:(Int.abs offset) ~f:step ~init:pos)
+          |> Fun.flip take o_length
+          |> filter ~f:(inside_puzzle puzzle)
+          |> to_array
         in
-        if Array.length res = 4 then Some res else None)
+        if Array.length res = o_length then Some res else None)
     |> Array.of_list
 
+let star_shapes = make_shapes [ 0; 1; 2; 3 ]
+let cross_shapes = make_shapes [ -1; 0; 1 ]
+let star_indices t index = star_shapes t index
+let cross_indices t index = cross_shapes t index
 let at t { row; col } = Array.unsafe_get (Array.unsafe_get t row) col
 
 module Tests = struct
@@ -169,6 +184,17 @@ module Tests = struct
           { row = 0; col = 1 };
           { row = 0; col = 0 };
         |];
+      |]
+    in
+    assert_equal (module IndexArrayArray) actual ~expected
+
+  let%test "single mas has two cross shapes both ways" =
+    let puzzle = from_lists [ [ X; X; X; X ] ] in
+    let actual = cross_indices puzzle { row = 0; col = 1 } in
+    let expected =
+      [|
+        [| { row = 0; col = 0 }; { row = 0; col = 1 }; { row = 0; col = 2 } |];
+        [| { row = 0; col = 2 }; { row = 0; col = 1 }; { row = 0; col = 0 } |];
       |]
     in
     assert_equal (module IndexArrayArray) actual ~expected
