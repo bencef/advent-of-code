@@ -197,13 +197,19 @@ module Tests = struct
     in
     assert_equal (module IndexArrayArray) actual ~expected
 
-  let%test "single mas has two cross shapes both ways" =
-    let puzzle = from_lists [ [ X; X; X; X ] ] in
-    let actual = cross_indices puzzle { row = 0; col = 1 } in
+  let%test "three by three has tow cross shapes both ways" =
+    let puzzle = from_lists [ [ X; X; X ]; [ X; X; X ]; [ X; X; X ] ] in
+    let actual = cross_indices puzzle { row = 1; col = 1 } in
     let expected =
       [|
-        [| { row = 0; col = 0 }; { row = 0; col = 1 }; { row = 0; col = 2 } |];
-        [| { row = 0; col = 2 }; { row = 0; col = 1 }; { row = 0; col = 0 } |];
+        (* Down Left *)
+        [| { row = 0; col = 0 }; { row = 1; col = 1 }; { row = 2; col = 2 } |];
+        (* Down Right *)
+        [| { row = 0; col = 2 }; { row = 1; col = 1 }; { row = 2; col = 0 } |];
+        (* Up Left *)
+        [| { row = 2; col = 0 }; { row = 1; col = 1 }; { row = 0; col = 2 } |];
+        (* Up Right *)
+        [| { row = 2; col = 2 }; { row = 1; col = 1 }; { row = 0; col = 0 } |];
       |]
     in
     assert_equal (module IndexArrayArray) actual ~expected
