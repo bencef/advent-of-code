@@ -19,7 +19,5 @@ let () =
   let puzzle = Main.read_puzzle () in
   let x_indices = find_indices puzzle A in
   let runs_to_check = Array.map x_indices ~f:(cross_indices puzzle) in
-  let result =
-    Array.count runs_to_check ~f:(check_pos puzzle)
-  in
+  let result = Array.count runs_to_check ~f:(check_pos puzzle) in
   Printf.printf "%d\n" result

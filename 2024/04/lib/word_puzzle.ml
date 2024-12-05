@@ -5,6 +5,7 @@ type t = letter array array
 type index = { row : int; col : int }
 type step = index -> index
 type stepper = { fwd : step; back : step }
+type to_include = Radial | Only_diags
 
 let from_lists data =
   let result = data |> Array.of_list |> Array.map ~f:Array.of_list in
@@ -25,25 +26,33 @@ let inside_puzzle t { row; col } =
   let valid actual ~max_val = Int.(actual >= 0 && actual < max_val) in
   valid row ~max_val:row_num && valid col ~max_val:col_num
 
-let steps =
+let steps to_include =
   let modify row_f col_f { row; col } = { row = row_f row; col = col_f col } in
   let inc x = x + 1 in
   let dec x = x - 1 in
   let stay x = x in
-  let dirs = [ [| stay; stay |]; [| inc; dec |]; [| dec; inc |] ] in
+  let dirs =
+    match to_include with
+    | Radial -> [ [| stay; stay |]; [| inc; dec |]; [| dec; inc |] ]
+    | Only_diags -> [ [| inc; dec |]; [| dec; inc |] ]
+  in
+  let res =
+    List.concat_map dirs ~f:(fun row_dir ->
+        List.map dirs ~f:(fun col_dir ->
+            let fwd = modify row_dir.(0) col_dir.(0) in
+            let back = modify row_dir.(1) col_dir.(1) in
+            { fwd; back }))
+  in
+  match to_include with
   (* this generates a stay/stay, but that should be fine, just drop the head *)
-  List.concat_map dirs ~f:(fun row_dir ->
-      List.map dirs ~f:(fun col_dir ->
-          let fwd = modify row_dir.(0) col_dir.(0) in
-          let back = modify row_dir.(1) col_dir.(1) in
-          { fwd; back }))
-  |> fun l -> List.drop l 1
+  | Radial -> List.drop res 1
+  | Only_diags -> res
 
 let apply_n_times ~n ~f ~init =
   let rec go acc n = if n = 0 then acc else go (f acc) (n - 1) in
   go init n
 
-let make_shapes offsets =
+let make_shapes steps offsets =
   let o_length = List.length offsets in
   fun puzzle pos ->
     List.filter_map steps ~f:(fun step ->
@@ -59,8 +68,8 @@ let make_shapes offsets =
         if Array.length res = o_length then Some res else None)
     |> Array.of_list
 
-let star_shapes = make_shapes [ 0; 1; 2; 3 ]
-let cross_shapes = make_shapes [ -1; 0; 1 ]
+let star_shapes = make_shapes (steps Radial) [ 0; 1; 2; 3 ]
+let cross_shapes = make_shapes (steps Only_diags) [ -1; 0; 1 ]
 let star_indices t index = star_shapes t index
 let cross_indices t index = cross_shapes t index
 let at t { row; col } = Array.unsafe_get (Array.unsafe_get t row) col
