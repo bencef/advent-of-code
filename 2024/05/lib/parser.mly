@@ -1,20 +1,25 @@
-%token <int> NUMBER
-%token EOF
-%start <(int array) * (int array)> parse
-
 %{
 open! Core
-
-let transform nums =
-  nums |> Array.of_list |> Array.unzip
+open Printer_queue
 %}
+
+%token <int> NUMBER
+%token EOF
+%token SEPARATOR
+%token BEFORE
+%token COMMA
+%start <t> parse
 
 %%
 
 parse:
-  | nums = list(pair); EOF { transform nums }
+  | orderings = nonempty_list(ordering); SEPARATOR; po = list(print_order) EOF { make orderings po }
   ;
 
-pair:
-  | a = NUMBER; b = NUMBER { (a, b) }
+ordering:
+  | a = NUMBER; BEFORE; b = NUMBER { (a, b) }
+  ;
+
+print_order:
+  | po = separated_nonempty_list(COMMA, NUMBER) { po }
   ;
