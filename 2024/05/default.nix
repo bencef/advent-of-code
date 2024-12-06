@@ -25,6 +25,8 @@ ocamlPackages.buildDunePackage {
             "./lib/reading.mli"
             "./lib/printer_queue.ml"
             "./lib/printer_queue.mli"
+            "./lib/testing.ml"
+            "./lib/testing.mli"
             "./aoc_2024_05.opam"
           ];
         };
