@@ -69,6 +69,13 @@ let is_in_order { lookup; _ } po =
             let set = remove_all ~from:set ~values:(Lookup.before lookup n) in
             Continue set)
 
+let correct_print_order { lookup; _ } po =
+  let compare n1 n2 =
+    let after = Lookup.after lookup n1 in
+    if Set.mem after n2 then -1 else 1
+  in
+  Array.sorted_copy po ~compare
+
 module Tests = struct
   open Testing
 
@@ -79,6 +86,7 @@ module Tests = struct
   end
 
   module IntList = ListOf (Int)
+  module IntArray = ArrayOf (Int)
 
   let%test "one element print orders middle is itself" =
     let order = Print_order.make [ 1 ] in
@@ -105,4 +113,20 @@ module Tests = struct
     let actual = Lookup.before l 2 |> Set.to_list in
     let expected = [ 1 ] in
     assert_equal (module IntList) actual ~expected
+
+  let%test "correct singleton print order without rules" =
+    let pairs = [] in
+    let print_orders = [] in
+    let pq = make pairs print_orders in
+    let actual = correct_print_order pq [| 1 |] in
+    let expected = [| 1 |] in
+    assert_equal (module IntArray) actual ~expected
+
+  let%test "correct two after one, three after two" =
+    let pairs = [ (1, 2); (2, 3) ] in
+    let print_orders = [] in
+    let pq = make pairs print_orders in
+    let actual = correct_print_order pq [| 2; 3; 1 |] in
+    let expected = [| 1; 2; 3 |] in
+    assert_equal (module IntArray) actual ~expected
 end

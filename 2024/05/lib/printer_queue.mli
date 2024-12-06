@@ -9,3 +9,4 @@ type t
 val make : (int * int) list -> int list list -> t
 val print_orders : t -> Print_order.t list
 val is_in_order : t -> Print_order.t -> bool
+val correct_print_order : t -> Print_order.t -> Print_order.t
