@@ -24,10 +24,10 @@ module Lookup = struct
     List.fold pairs ~init ~f:merge
 
   let after { after; _ } n =
-    match Map.find after n with None -> [] | Some set -> Set.to_list set
+    match Map.find after n with None -> IntSet.empty | Some set -> set
 
   let before { before; _ } n =
-    match Map.find before n with None -> [] | Some set -> Set.to_list set
+    match Map.find before n with None -> IntSet.empty | Some set -> set
 end
 
 module Print_order = struct
@@ -42,14 +42,32 @@ module Print_order = struct
   let middle (order : t) : int = order.(Array.length order / 2)
 end
 
-type t = { _lookup : Lookup.t; print_orders : Print_order.t list }
+type t = { lookup : Lookup.t; print_orders : Print_order.t list }
 
 let make ordering print_orders =
   let lookup = Lookup.make ordering in
   let print_orders = List.map print_orders ~f:Print_order.make in
-  { _lookup = lookup; print_orders }
+  { lookup; print_orders }
 
 let print_orders { print_orders; _ } = print_orders
+
+let remove_all ~from ~values =
+  Set.fold values ~init:from ~f:(fun set value -> Set.remove set value)
+
+let is_in_order { lookup; _ } po =
+  match Array.to_list po with
+  | [] -> true
+  | head :: rest ->
+      let init = Lookup.after lookup head in
+      let finish = Fun.const true in
+      List.fold_until rest ~init ~finish ~f:(fun set n ->
+          let open Continue_or_stop in
+          (* n should be in set *)
+          if not (Set.mem set n) then Stop false
+          else
+            (* everything before n should be removed *)
+            let set = remove_all ~from:set ~values:(Lookup.before lookup n) in
+            Continue set)
 
 module Tests = struct
   open Testing
@@ -77,14 +95,14 @@ module Tests = struct
   let%test "two after one forward" =
     let pairs = [ (1, 2) ] in
     let l = Lookup.make pairs in
-    let actual = Lookup.after l 1 in
+    let actual = Lookup.after l 1 |> Set.to_list in
     let expected = [ 2 ] in
     assert_equal (module IntList) actual ~expected
 
   let%test "two after one backwards" =
     let pairs = [ (1, 2) ] in
     let l = Lookup.make pairs in
-    let actual = Lookup.before l 2 in
+    let actual = Lookup.before l 2 |> Set.to_list in
     let expected = [ 1 ] in
     assert_equal (module IntList) actual ~expected
 end
