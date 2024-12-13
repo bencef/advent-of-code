@@ -3,16 +3,25 @@ open! Core
 open Patrol
 %}
 
-%token <int> NUMBER
+%token EMPTY
+%token OBSTACLE
+%token <Patrol.facing> SENTRY
+%token EOL
 %token EOF
 %start <floor> parse
 
 %%
 
 parse:
-  | nums = list(pair); EOF { make_floor nums }
+  | rows = list(row); EOF { make_floor rows }
   ;
 
-pair:
-  | a = NUMBER; b = NUMBER { (a, b) }
+row:
+  | tiles = list(tile); EOL { tiles }
+  ;
+
+tile:
+  | EMPTY { Tile.Empty }
+  | OBSTACLE { Tile.Obstacle }
+  | facing = SENTRY { Tile.Sentry facing }
   ;
