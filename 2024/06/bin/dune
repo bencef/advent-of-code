@@ -1,0 +1,6 @@
+(executables
+ (public_names aoc_2024_06_part1 aoc_2024_06_part2)
+ (names part1 part2)
+ (libraries aoc_2024_06 core)
+ (preprocess
+  (pps ppx_inline_test)))
