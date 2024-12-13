@@ -6,4 +6,4 @@
  (name aoc_2024_06)
  (libraries core sedlex menhirLib)
  (preprocess
-  (pps ppx_inline_test sedlex.ppx)))
+  (pps ppx_inline_test sedlex.ppx ppx_sexp_conv)))

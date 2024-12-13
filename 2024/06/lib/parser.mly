@@ -1,18 +1,16 @@
-%token <int> NUMBER
-%token EOF
-%start <(int array) * (int array)> parse
-
 %{
 open! Core
-
-let transform nums =
-  nums |> Array.of_list |> Array.unzip
+open Patrol
 %}
+
+%token <int> NUMBER
+%token EOF
+%start <floor> parse
 
 %%
 
 parse:
-  | nums = list(pair); EOF { transform nums }
+  | nums = list(pair); EOF { make_floor nums }
   ;
 
 pair:

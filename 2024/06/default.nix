@@ -19,10 +19,12 @@ ocamlPackages.buildDunePackage {
             "./bin/main.mli"
             "./dune-project"
             "./lib/dune"
-            "./lib/parser.mly"
             "./lib/lexer.ml"
+            "./lib/parser.mly"
             "./lib/reading.ml"
             "./lib/reading.mli"
+            "./lib/patrol.ml"
+            "./lib/patrol.mli"
             "./aoc_2024_06.opam"
           ];
         };
