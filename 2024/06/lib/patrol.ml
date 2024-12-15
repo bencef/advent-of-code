@@ -57,7 +57,7 @@ let make_floor values =
       in
       { acc with width = acc.width + 1 }
     in
-    let acc = List.fold row ~init:acc ~f in
+    let acc = List.fold row ~init:{ acc with width = 0 } ~f in
     { acc with height = acc.height + 1 }
   in
   let built = List.fold values ~init ~f in
@@ -66,3 +66,4 @@ let make_floor values =
   | Some sentry -> { built with sentry }
 
 let count_obstacles { obstacles; _ } = Set.length obstacles
+let get_sentry { sentry; _ } = sentry

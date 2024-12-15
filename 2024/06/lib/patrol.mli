@@ -10,4 +10,5 @@ end
 type floor
 
 val make_floor : Tile.t list list -> floor
+val get_sentry : floor -> sentry
 val count_obstacles : floor -> int
